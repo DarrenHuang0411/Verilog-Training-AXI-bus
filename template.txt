@@ -1,0 +1,45 @@
+    Arbiter Arbiter_inst (
+        .clk(clk), .rst(rst),
+      //Master 0
+        .I0_ID(),
+        .I0_Addr(),
+        .I0_Len(),
+        .I0_Size(),
+        .I0_Burst(),
+        .I0_Valid(),
+        .IB0_Ready(),
+      //Master 1
+        .I1_ID(),
+        .I1_Addr(),
+        .I1_Len(),
+        .I1_Size(),
+        .I1_Burst(),
+        .I1_Valid(),   
+        .IB1_Ready(),
+      //output --> decoder
+        .O_IDS(),
+        .O_Addr(),
+        .O_Len(),
+        .O_Size(),
+        .O_Burst(),
+        .O_Valid(),
+        .OB_Ready()
+    );
+
+     Decoder Decoder_inst (
+        .clk(clk), .rst(rst),
+      //from Arbiter    
+        .I_Addr     (),
+        .I_Valid    (),
+        .IB_Ready   (),
+      //Slave 0 --> IM 
+        .O0_Valid   (),
+        .OB0_Ready  (),
+      //Slave 1 --> DM
+        .O1_Valid   (),
+        .OB1_Ready  (),     
+      //Slave 1 --> DM
+        .O1_Valid   (),
+        .OB1_Ready  ()   
+    );
+   
