@@ -35,9 +35,15 @@
       //Default Slave
     );
   //----------------------- Parameter -----------------------//
-  //connect Arbiter & Decoder
-    wire    Arib_Dec_Valid;
-    wire    Dec_Arib_Ready;
+    //Arbiter Output        
+        logic   [`AXI_ID_BITS -1:0]     O_IDS;  
+        logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
+        logic   [`AXI_LEN_BITS -1:0]    O_Len;  
+        logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
+        logic   [1:0]                   O_burst;
+    //connect Arbiter & Decoder
+        logic   Arib_Dec_Valid;
+        logic   Dec_Arib_Ready;
 
   //----------------------- Main Code -----------------------//
     Arbiter Arbiter_inst (
@@ -69,11 +75,11 @@
         .OB_Ready(Dec_Arib_Ready)
     );
   //Slave 0 --> IM 
-    assign  S0_AWID     =   O_IDS;   
+    assign  S0_AWID     =   O_IDS;     
     assign  S0_AWAddr   =   O_Addr;  
-    assign  S0_AWLen    =   O_Len;
-    assign  S0_AWSize   =   O_Size;
-    assign  S0_AWBurst  =   o_burst;
+    assign  S0_AWLen    =   O_Len;  
+    assign  S0_AWSize   =   O_Size; 
+    assign  S0_AWBurst  =   O_burst;
   //Slave 1 --> DM 
     assign  S1_AWID     =   O_IDS;    
     assign  S1_AWAddr   =   O_Addr;

@@ -16,14 +16,15 @@
         .I1_Burst(),
         .I1_Valid(),   
         .IB1_Ready(),
-      //output --> decoder
-        .O_IDS(),
-        .O_Addr(),
-        .O_Len(),
-        .O_Size(),
-        .O_Burst(),
-        .O_Valid(),
-        .OB_Ready()
+      //output info --> to all slave
+        .O_IDS  (O_IDS),
+        .O_Addr (O_Addr),
+        .O_Len  (O_Len),
+        .O_Size (O_Size),
+        .O_Burst(O_Burst),
+      //output handshake
+        .O_Valid(Arib_Dec_Valid),
+        .OB_Ready(Dec_Arib_Ready)
     );
 
      Decoder Decoder_inst (
@@ -39,7 +40,7 @@
         .O1_Valid   (),
         .OB1_Ready  (),     
       //Slave 1 --> DM
-        .O1_Valid   (),
-        .OB1_Ready  ()   
+        .ODefault_Valid   (),
+        .OBDefault_Ready  ()   
     );
    
