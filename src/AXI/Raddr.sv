@@ -42,38 +42,57 @@
       //Default Slave
     );
   //----------------------- Parameter -----------------------//
-  //connect Arbiter & Decoder
-    wire    Arib_Dec_Valid;
-    wire    Dec_Arib_Ready;
+    //Arbiter Output        
+        logic   [`AXI_ID_BITS -1:0]     O_IDS;  
+        logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
+        logic   [`AXI_LEN_BITS -1:0]    O_Len;  
+        logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
+        logic   [1:0]                   O_burst;
+    //connect Arbiter & Decoder
+        logic                           Arib_Dec_Valid;
+        logic                           Dec_Arib_Ready;
 
   //----------------------- Main Code -----------------------//
     Arbiter Arbiter_inst (
         .clk(clk), .rst(rst),
-      //Master 0
-        .I0_ID(),
-        .I0_Addr(),
-        .I0_Len(),
-        .I0_Size(),
-        .I0_Burst(),
-        .I0_Valid(),
-        .IB0_Ready(),
-      //Master 1
-        .I1_ID(),
-        .I1_Addr(),
-        .I1_Len(),
-        .I1_Size(),
-        .I1_Burst(),
-        .I1_Valid(),   
-        .IB1_Ready(),
-      //output --> decoder
-        .O_IDS(),
-        .O_Addr(),
-        .O_Len(),
-        .O_Size(),
-        .O_Burst(),
-        .O_Valid(),
-        .OB_Ready()
+      //Master 0 --> IM
+        .I0_ID      (M0_ARID),
+        .I0_Addr    (M0_ARAddr),
+        .I0_Len     (M0_ARLen),
+        .I0_Size    (M0_ARLen),
+        .I0_Burst   (M0_ARBurst),
+        .I0_Valid   (M0_ARValid),
+        .IB0_Ready  (M0_ARReady),
+      //Master 1 --> DM
+        .I1_ID      (M1_ARID),
+        .I1_Addr    (M1_ARAddr),
+        .I1_Len     (M1_ARLen),
+        .I1_Size    (M1_ARSize),
+        .I1_Burst   (M1_ARBurst),
+        .I1_Valid   (M1_ARValid),   
+        .IB1_Ready  (M1_ARReady),
+      //output info --> to all slave
+        .O_IDS  (O_IDS),
+        .O_Addr (O_Addr),
+        .O_Len  (O_Len),
+        .O_Size (O_Size),
+        .O_Burst(O_Burst),
+      //output handshake
+        .O_Valid(Arib_Dec_Valid),
+        .OB_Ready(Dec_Arib_Ready)
     );
+    //Slave 0 --> IM 
+        assign  S0_AWID     =   O_IDS;     
+        assign  S0_AWAddr   =   O_Addr;  
+        assign  S0_AWLen    =   O_Len;  
+        assign  S0_AWSize   =   O_Size; 
+        assign  S0_AWBurst  =   O_burst;
+    //Slave 1 --> DM 
+        assign  S1_AWID     =   O_IDS;    
+        assign  S1_AWAddr   =   O_Addr;
+        assign  S1_AWLen    =   O_Len;
+        assign  S1_AWSize   =   O_Size;
+        assign  S1_AWBurst  =   O_Burst;
 
     Decoder Decoder_inst (
         .clk(clk), .rst(rst),

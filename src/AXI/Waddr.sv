@@ -74,18 +74,18 @@
         .O_Valid(Arib_Dec_Valid),
         .OB_Ready(Dec_Arib_Ready)
     );
-  //Slave 0 --> IM 
-    assign  S0_AWID     =   O_IDS;     
-    assign  S0_AWAddr   =   O_Addr;  
-    assign  S0_AWLen    =   O_Len;  
-    assign  S0_AWSize   =   O_Size; 
-    assign  S0_AWBurst  =   O_burst;
-  //Slave 1 --> DM 
-    assign  S1_AWID     =   O_IDS;    
-    assign  S1_AWAddr   =   O_Addr;
-    assign  S1_AWLen    =   O_Len;
-    assign  S1_AWSize   =   O_Size;
-    assign  S1_AWBurst  =   O_Burst;
+    //Slave 0 --> IM 
+        assign  S0_AWID     =   O_IDS;     
+        assign  S0_AWAddr   =   O_Addr;  
+        assign  S0_AWLen    =   O_Len;  
+        assign  S0_AWSize   =   O_Size; 
+        assign  S0_AWBurst  =   O_burst;
+    //Slave 1 --> DM 
+        assign  S1_AWID     =   O_IDS;    
+        assign  S1_AWAddr   =   O_Addr;
+        assign  S1_AWLen    =   O_Len;
+        assign  S1_AWSize   =   O_Size;
+        assign  S1_AWBurst  =   O_Burst;
 
     Decoder Decoder_inst (
         .clk(clk), .rst(rst),
