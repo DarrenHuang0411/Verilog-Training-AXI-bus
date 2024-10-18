@@ -82,24 +82,24 @@
         .OB_Ready(Dec_Arib_Ready)
     );
     //Slave 0 --> IM 
-        assign  S0_AWID     =   O_IDS;     
-        assign  S0_AWAddr   =   O_Addr;  
-        assign  S0_AWLen    =   O_Len;  
-        assign  S0_AWSize   =   O_Size; 
-        assign  S0_AWBurst  =   O_burst;
+        assign  S0_ARID     =   O_IDS;     
+        assign  S0_ARAddr   =   O_Addr;  
+        assign  S0_ARLen    =   O_Len;  
+        assign  S0_ARSize   =   O_Size; 
+        assign  S0_ARBurst  =   O_burst;
     //Slave 1 --> DM 
-        assign  S1_AWID     =   O_IDS;    
-        assign  S1_AWAddr   =   O_Addr;
-        assign  S1_AWLen    =   O_Len;
-        assign  S1_AWSize   =   O_Size;
-        assign  S1_AWBurst  =   O_Burst;
+        assign  S1_ARID     =   O_IDS;    
+        assign  S1_ARAddr   =   O_Addr;
+        assign  S1_ARLen    =   O_Len;
+        assign  S1_ARSize   =   O_Size;
+        assign  S1_ARBurst  =   O_Burst;
 
     Decoder Decoder_inst (
         .clk(clk), .rst(rst),
       //from Arbiter    
-        .I_Addr     (),
-        .I_Valid    (),
-        .IB_Ready   (),
+        .I_Addr     (O_Addr),
+        .I_Valid    (Arib_Dec_Valid),
+        .IB_Ready   (Dec_Arib_Ready),
       //Slave 0 --> IM 
         .O0_Valid   (),
         .OB0_Ready  (),
@@ -111,5 +111,4 @@
         .OBDefault_Ready  ()   
     );
    
-
     endmodule
