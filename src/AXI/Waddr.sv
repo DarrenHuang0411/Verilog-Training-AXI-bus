@@ -31,10 +31,20 @@
         output  logic [`AXI_SIZE_BITS -1:0]   S1_AWSize,      
         output  logic [1:0]                   S1_AWBurst,   
         output  logic                         S1_AWValid,    
-        input   logic                         S1_AWReady
+        input   logic                         S1_AWReady,
       //Default Slave
+        output  logic [`AXI_ID_BITS -1:0]     DS_AWID,      
+        output  logic [`AXI_ADDR_BITS -1:0]   DS_AWAddr,      
+        output  logic [`AXI_LEN_BITS -1:0]    DS_AWLen,        
+        output  logic [`AXI_SIZE_BITS -1:0]   DS_AWSize,      
+        output  logic [1:0]                   DS_AWBurst,   
+        output  logic                         DS_AWValid,    
+        input   logic                         DS_AWReady
+        
     );
   //----------------------- Parameter -----------------------//
+    //M0 (not use --> prevent logic)
+        logic                           M0_AWReady; 
     //Arbiter Output        
         logic   [`AXI_ID_BITS -1:0]     O_IDS;  
         logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
@@ -42,8 +52,8 @@
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
         logic   [1:0]                   O_burst;
     //connect Arbiter & Decoder
-        logic   Arib_Dec_Valid;
-        logic   Dec_Arib_Ready;
+        logic   Arb_Dec_Valid;
+        logic   Dec_Arb_Ready;
 
   //----------------------- Main Code -----------------------//
     Arbiter Arbiter_inst (
@@ -55,7 +65,7 @@
         .I0_Size(`AXI_SIZE_BITS'd0),
         .I0_Burst(2'd0),
         .I0_Valid(1'd0),
-        .IB0_Ready(1'd0),
+        .IB0_Ready(M0_AWReady),
       //Master 1 --> DM
         .I1_ID(M1_AWID),   
         .I1_Addr(M1_AWAddr), 
@@ -71,8 +81,8 @@
         .O_Size (O_Size),
         .O_Burst(O_Burst),
       //output handshake
-        .O_Valid(Arib_Dec_Valid),
-        .OB_Ready(Dec_Arib_Ready)
+        .O_Valid(Arb_Dec_Valid),
+        .OB_Ready(Dec_Arb_Ready)
     );
     //Slave 0 --> IM 
         assign  S0_AWID     =   O_IDS;     
@@ -86,6 +96,12 @@
         assign  S1_AWLen    =   O_Len;
         assign  S1_AWSize   =   O_Size;
         assign  S1_AWBurst  =   O_Burst;
+    //Default Slave
+        assign  DS_AWID     =   O_IDS;    
+        assign  DS_AWAddr   =   O_Addr;
+        assign  DS_AWLen    =   O_Len;
+        assign  DS_AWSize   =   O_Size;
+        assign  DS_AWBurst  =   O_Burst;
 
     Decoder Decoder_inst (
         .clk(clk), .rst(rst),
@@ -100,8 +116,8 @@
         .O1_Valid   (S1_AWValid),
         .OB1_Ready  (S1_AWReady),     
       //Slave 1 --> DM
-        .ODefault_Valid   (),
-        .OBDefault_Ready  ()   
+        .ODefault_Valid   (DS_AWValid),
+        .OBDefault_Ready  (DS_AWReady)   
     );
 
     endmodule

@@ -38,8 +38,15 @@
         output  logic [`AXI_SIZE_BITS -1:0]   S1_ARSize,      
         output  logic [1:0]                   S1_ARBurst,   
         output  logic                         S1_ARValid,    
-        input   logic                         S1_ARReady
+        input   logic                         S1_ARReady,
       //Default Slave
+        output  logic [`AXI_ID_BITS -1:0]     DS_ARID,      
+        output  logic [`AXI_ADDR_BITS -1:0]   DS_ARAddr,      
+        output  logic [`AXI_LEN_BITS -1:0]    DS_ARLen,        
+        output  logic [`AXI_SIZE_BITS -1:0]   DS_ARSize,      
+        output  logic [1:0]                   DS_ARBurst,   
+        output  logic                         DS_ARValid,    
+        input   logic                         DS_ARReady
     );
   //----------------------- Parameter -----------------------//
     //Arbiter Output        
@@ -49,8 +56,8 @@
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
         logic   [1:0]                   O_burst;
     //connect Arbiter & Decoder
-        logic                           Arib_Dec_Valid;
-        logic                           Dec_Arib_Ready;
+        logic                           Arb_Dec_Valid;
+        logic                           Dec_Arb_Ready;
 
   //----------------------- Main Code -----------------------//
     Arbiter Arbiter_inst (
@@ -78,8 +85,8 @@
         .O_Size (O_Size),
         .O_Burst(O_Burst),
       //output handshake
-        .O_Valid(Arib_Dec_Valid),
-        .OB_Ready(Dec_Arib_Ready)
+        .O_Valid(Arb_Dec_Valid),
+        .OB_Ready(Dec_Arb_Ready)
     );
     //Slave 0 --> IM 
         assign  S0_ARID     =   O_IDS;     
@@ -98,17 +105,17 @@
         .clk(clk), .rst(rst),
       //from Arbiter    
         .I_Addr     (O_Addr),
-        .I_Valid    (Arib_Dec_Valid),
-        .IB_Ready   (Dec_Arib_Ready),
+        .I_Valid    (Arb_Dec_Valid),
+        .IB_Ready   (Dec_Arb_Ready),
       //Slave 0 --> IM 
         .O0_Valid   (),
-        .OB0_Ready  (),
+        .OB0_Ready  (S0_ARReady),
       //Slave 1 --> DM
         .O1_Valid   (),
-        .OB1_Ready  (),     
-      //Slave 1 --> DM
+        .OB1_Ready  (S1_ARReady),     
+      //Default Slave 
         .ODefault_Valid   (),
-        .OBDefault_Ready  ()   
+        .OBDefault_Ready  (DS_ARReady)   
     );
    
     endmodule

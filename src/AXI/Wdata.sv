@@ -34,6 +34,11 @@
         input                                 DS_WReady           
     )
   //----------------------- Parameter -----------------------//
+    logic     Slave_sel;
+    parameter [1:0] S0 = 2'd0,
+                    S1 = 2'd1,
+                    DS = 2'd2;
+
     logic     Arib_Dec_Valid;
     logic     Dec_Arib_Ready;
   //----------------------- Main Code -----------------------//
@@ -43,40 +48,39 @@
         assign  S0_WData  = M1_WData;
         assign  S0_WStrb  = M1_WStrb;//
         assign  S0_WLast  = M1_WLast;
-
     //Slave 1 --> DM 
         assign  S0_WData  = M1_WData;
         assign  S0_WStrb  = M1_WStrb;//
         assign  S0_WLast  = M1_WLast;
 
-    //Slave 
-        always_comb begin
-            case (param)
-                S0: begin
-                  Dec_Arib_Ready  = S0_WReady;
-                  S0_WValid   = Arib_Dec_Valid;
-                  S1_WValid   = 1'b0;
-                  DS_WValid   = 1'b0;
-                end
-                S1: begin
-                  Dec_Arib_Ready  = S1_WReady;                  
-                  S0_WValid   = 1'b0;
-                  S1_WValid   = Arib_Dec_Valid;
-                  DS_WValid   = 1'b0;                  
-                end
-                DS: begin
-                  Dec_Arib_Ready  = DS_WReady;                  
-                  S0_WValid   = 1'b0;
-                  S1_WValid   = 1'b0;
-                  DS_WValid   = Arib_Dec_Valid;                    
-                end        
-              default: begin
-                  Dec_Arib_Ready  = 1'b1;//             
-                  S0_WValid   = 1'b0;
-                  S1_WValid   = 1'b0;
-                  DS_WValid   = 1'b0;                    
-                end  
-            endcase
-        end
+
+      always_comb begin
+          case (Slave_sel)
+            S0: begin
+              Dec_Arib_Ready  = S0_WReady;
+              S0_WValid       = Arib_Dec_Valid;
+              S1_WValid       = 1'b0;
+              DS_WValid       = 1'b0;
+            end
+            S1: begin
+              Dec_Arib_Ready  = S1_WReady;                  
+              S0_WValid   = 1'b0;
+              S1_WValid   = Arib_Dec_Valid;
+              DS_WValid   = 1'b0;                  
+            end
+            DS: begin
+              Dec_Arib_Ready  = DS_WReady;                  
+              S0_WValid   = 1'b0;
+              S1_WValid   = 1'b0;
+              DS_WValid   = Arib_Dec_Valid;                    
+            end        
+            default: begin
+                Dec_Arib_Ready  = 1'b1;//             
+                S0_WValid   = 1'b0;
+                S1_WValid   = 1'b0;
+                DS_WValid   = 1'b0;                    
+            end  
+          endcase
+      end
 
     endmodule

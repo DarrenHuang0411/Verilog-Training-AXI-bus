@@ -7,12 +7,34 @@
 
 //------------------------- Module -------------------------//
     module CPU_wrapper (
-        input   clk,
-        input   rst,
-      //Write Channel
-
-      //Read Channel
-
+        input   clk, rst,
+      //W channel - Addr
+        //M0
+        output  logic  [`AXI_ID_BITS -1:0]     M0_AWID,    
+        output  logic  [`AXI_ADDR_BITS -1:0]   M0_AWAddr,  
+        output  logic  [`AXI_LEN_BITS -1:0]    M0_AWLen,   
+        output  logic  [`AXI_SIZE_BITS -1:0]   M0_AWSize,  
+        output  logic  [1:0]                   M0_AWBurst, 
+        output  logic                          M0_AWValid, 
+        input                                  M0_AWReady,     
+        //M1
+        output  logic  [`AXI_ID_BITS -1:0]     M1_AWID,    
+        output  logic  [`AXI_ADDR_BITS -1:0]   M1_AWAddr,  
+        output  logic  [`AXI_LEN_BITS -1:0]    M1_AWLen,   
+        output  logic  [`AXI_SIZE_BITS -1:0]   M1_AWSize,  
+        output  logic  [1:0]                   M1_AWBurst, 
+        output  logic                          M1_AWValid, 
+        input                                  M1_AWReady,               
+      //W channel - data
+        //M0
+        input          [`AXI_ID_BITS   -1:0]   M0_WID,  
+        input          [`AXI_DATA_BITS -1:0]   M0_WData, 
+        input          [`AXI_STRB_BITS -1:0]   M0_WStrb, 
+        input                                  M0_WLast, 
+        input                                  M0_WValid,
+        output  logic                          M0_RReady,        
+      //R channel - Addr
+      //R channel - data
     );
 
   //----------------------- Parameter -----------------------//
