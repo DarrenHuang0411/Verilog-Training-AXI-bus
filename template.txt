@@ -43,4 +43,40 @@
         .ODefault_Valid   (),
         .OBDefault_Ready  ()   
     );
+
+    Master_wrapper Master_wrapper_IM_inst(
+        .clk(clk), .rst(rst),
+        .Memory_WEB(), 
+        .Memory_BWEB(),
+        .Memory_Addr(),
+        .Memory_Din(),
+        .Memory_Dout(),
+
+        .M_AWID(),  
+        .M_AWAddr(),
+        .M_AWLen(), 
+        .M_AWSize(),
+        .M_AWBurst(),
+        .M_AWValid(),
+        .M_AWReady(),
+        .M_WData(), 
+        .M_WStrb(), 
+        .M_WLast(), 
+        .M_WValid(),
+        .M_WReady(),
+        .M_ARID(),  
+        .M_ARAddr(),
+        .M_ARLen(), 
+        .M_ARSize(),
+        .M_ARBurst(),
+        .M_ARValid(),
+        .M_ARReady(),
+        .M_RID(),   
+        .M_RData(), 
+        .M_RStrb(), 
+        .M_RLast(), 
+        .M_RValid(),
+        .M_RReady()
+
+    );
    

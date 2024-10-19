@@ -35,9 +35,9 @@
     )
   //----------------------- Parameter -----------------------//
     logic     Slave_sel;
-    parameter [1:0] S0 = 2'd0,
-                    S1 = 2'd1,
-                    DS = 2'd2;
+    parameter [1:0] S0 = 3'b001,
+                    S1 = 3'b010,
+                    DS = 3'b100;
 
     logic     Arib_Dec_Valid;
     logic     Dec_Arib_Ready;
@@ -53,6 +53,8 @@
         assign  S0_WStrb  = M1_WStrb;//
         assign  S0_WLast  = M1_WLast;
 
+    //Ready back to check
+      assign  Slave_sel = {};
 
       always_comb begin
           case (Slave_sel)

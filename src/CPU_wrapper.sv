@@ -27,18 +27,24 @@
         input                                  M1_AWReady,               
       //W channel - data
         //M0
-        input          [`AXI_ID_BITS   -1:0]   M0_WID,  
-        input          [`AXI_DATA_BITS -1:0]   M0_WData, 
-        input          [`AXI_STRB_BITS -1:0]   M0_WStrb, 
-        input                                  M0_WLast, 
-        input                                  M0_WValid,
-        output  logic                          M0_RReady,        
+        output  logic  [`AXI_ID_BITS   -1:0]   M0_WID,  
+        output  logic  [`AXI_DATA_BITS -1:0]   M0_WData, 
+        output  logic  [`AXI_STRB_BITS -1:0]   M0_WStrb, 
+        output  logic                          M0_WLast, 
+        output  logic                          M0_WValid,
+        input                                  M0_RReady,     
+        //M1
+        output  logic  [`AXI_ID_BITS   -1:0]   M1_WID,  
+        output  logic  [`AXI_DATA_BITS -1:0]   M1_WData, 
+        output  logic  [`AXI_STRB_BITS -1:0]   M1_WStrb, 
+        output  logic                          M1_WLast, 
+        output  logic                          M1_WValid,
+        input                                  M1_RReady,                
       //R channel - Addr
       //R channel - data
     );
 
   //----------------------- Parameter -----------------------//
-
 
     CPU CPU_inst(
         .clk(clk), .rst(rst),
@@ -54,15 +60,76 @@
         .DM_Dout()
     );
 
-    Master_wrapper Master_wrapper_Instr_inst(
+    Master_wrapper Master_wrapper_IM_inst(
         .clk(clk), .rst(rst),
+        .Memory_WEB(), 
+        .Memory_BWEB(),
+        .Memory_Addr(),
+        .Memory_Din(),
+        .Memory_Dout(),
+
+        .M_AWID(),  
+        .M_AWAddr(),
+        .M_AWLen(), 
+        .M_AWSize(),
+        .M_AWBurst(),
+        .M_AWValid(),
+        .M_AWReady(),
+        .M_WData(), 
+        .M_WStrb(), 
+        .M_WLast(), 
+        .M_WValid(),
+        .M_WReady(),
+        .M_ARID(),  
+        .M_ARAddr(),
+        .M_ARLen(), 
+        .M_ARSize(),
+        .M_ARBurst(),
+        .M_ARValid(),
+        .M_ARReady(),
+        .M_RID(),   
+        .M_RData(), 
+        .M_RStrb(), 
+        .M_RLast(), 
+        .M_RValid(),
+        .M_RReady()
 
     );
 
-    Master_wrapper Master_wrapper_data_inst(
+    Master_wrapper Master_wrapper_DM_inst(
         .clk(clk), .rst(rst),
+        .Memory_WEB(), 
+        .Memory_BWEB(),
+        .Memory_Addr(),
+        .Memory_Din(),
+        .Memory_Dout(),
+
+        .M_AWID(),  
+        .M_AWAddr(),
+        .M_AWLen(), 
+        .M_AWSize(),
+        .M_AWBurst(),
+        .M_AWValid(),
+        .M_AWReady(),
+        .M_WData(), 
+        .M_WStrb(), 
+        .M_WLast(), 
+        .M_WValid(),
+        .M_WReady(),
+        .M_ARID(),  
+        .M_ARAddr(),
+        .M_ARLen(), 
+        .M_ARSize(),
+        .M_ARBurst(),
+        .M_ARValid(),
+        .M_ARReady(),
+        .M_RID(),   
+        .M_RData(), 
+        .M_RStrb(), 
+        .M_RLast(), 
+        .M_RValid(),
+        .M_RReady()
 
     );
 
     endmodule
-
