@@ -45,7 +45,7 @@
 
   //----------------------- Parameter -----------------------//
     //FSM
-    logic   [2:0]S_cur, S_nxt;
+    logic   [2:0] S_cur, S_nxt;
     parameter   INITIAL   = 3'd0,
                 RADDR     = 3'd1,
                 RDATA     = 3'd2,
