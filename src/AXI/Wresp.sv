@@ -29,10 +29,39 @@
       input                               DS_BValid,
       output  logic                       DS_BReady      
     );
+  //----------------------- Parameter -----------------------//
+
+    logic       Slave_sel;             
+    parameter [1:0] S0  =   3'b001,
+                    S1  =   3'b010,
+                    DS  =   3'b100;  
+    logic       Master_sel;
+    parameter [1:0] M0 = 4'b0001,
+                    M1 = 4'b0010;  
 
   //----------------------- Main Code -----------------------//      
 
     always_comb begin
+      
+    end
+
+    always_comb begin
+        case (Slave_sel)
+          S0: begin
+            
+          end
+          S1:
+          DS: 
+          default: 
+        endcase
+    end
+
+
+    always_comb begin
+        case (Master_sel)
+          M1: 
+          default: 
+        endcase
       
     end
 

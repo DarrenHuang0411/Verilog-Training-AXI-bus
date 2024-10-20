@@ -52,9 +52,12 @@
         assign  S0_WData  = M1_WData;
         assign  S0_WStrb  = M1_WStrb;//
         assign  S0_WLast  = M1_WLast;
-
+    //Default Slave 
     //Ready back to check
-      assign  Slave_sel = {};
+      S0_sel
+      S1_sel
+      DS_sel
+      assign  Slave_sel = {DS_AWValid, S1_AWValid, S0_AWValid};
 
       always_comb begin
           case (Slave_sel)
