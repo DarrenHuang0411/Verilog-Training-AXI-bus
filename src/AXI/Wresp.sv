@@ -35,6 +35,7 @@
     logic   [`AXI_STRB_BITS -1:0]   O_Strb;
     logic                           O_Last;
     logic                           O_Valid;
+    logic                           O_Ready;
 
     logic       Slave_sel;             
     parameter [1:0] S0  =   3'b001,
@@ -55,36 +56,40 @@
         else
             Slave_sel   =   3'b000;      
     end
-
+    //Exchange Slave
     always_comb begin
         case (Slave_sel)
           S0: begin
             Master_sel    = S0_BID[7:4];
             O_ID          = S0_BID[3:0];  
             O_Resp        = S0_BResp;
-            O_Valid       = S0_BValid;             
+            O_Valid       = S0_BValid;
+            S0_BReady     = O_Ready;         
           end
           S1: begin
             Master_sel    = S1_BID[7:4];
             O_ID          = S1_BID[3:0];  
             O_Resp        = S1_BResp; 
             O_Valid       = S1_BValid;                          
+            S1_BReady     = O_Ready;            
           end
           DS: begin
             Master_sel    = DS_BID[7:4];
             O_ID          = DS_BID[3:0];  
             O_Resp        = DS_BResp; 
             O_Valid       = DS_BValid;                          
+            DS_BReady     = O_Ready;            
           end
           default: begin
             Master_sel    = `AXI_ID_BITS'd0;
             O_ID          = `AXI_ID_BITS'd0;  
             O_Resp        = 2'd0;   
             O_Valid       = 1'd0;                         
+            DS_BReady     = 1'd0;
           end
         endcase
     end
-  //Exchange (Master)
+    //Exchange (Master)
     assign  M1_BID      =   O_ID;
     assign  M1_BResp    =   O_Data;  
     assign  M1_BValid   =   O_Valid;
