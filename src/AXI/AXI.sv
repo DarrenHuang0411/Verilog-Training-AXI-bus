@@ -16,6 +16,11 @@
 // 	Version:		1.0	    								   		//
 //////////////////////////////////////////////////////////////////////
 `include "../../include/AXI_define.svh"
+`include "Waddr.sv"
+`include "Wdata.sv"
+`include "Wresp.sv"
+`include "Raddr.sv"
+`include "Rdata.sv"
 
 module AXI(
 
@@ -160,18 +165,149 @@ module AXI(
 	output logic RREADY_S1
 	
 );
-    //---------- you should put your design here ----------//
 
+  //---------- you should put your design here ----------//
+	Raddr	Raddr_inst(
+	  //M0
+		.M0_ARID(),   
+		.M0_ARAddr(), 
+		.M0_ARLen(),  
+		.M0_ARSize(), 
+		.M0_ARBurst(),
+		.M0_ARValid(),
+		.M0_ARReady(),
+	  //M1
+		.M1_ARID(),   
+		.M1_ARAddr(), 
+		.M1_ARLen(),  
+		.M1_ARSize(), 
+		.M1_ARBurst(),
+		.M1_ARValid(),
+		.M1_ARReady(),
+	  //S0
+		.S0_ARID(),   
+		.S0_ARAddr(), 
+		.S0_ARLen(),  
+		.S0_ARSize(), 
+		.S0_ARBurst(),
+		.S0_ARValid(),
+		.S0_ARReady(),
+	  //S1
+		.S1_ARID(),   
+		.S1_ARAddr(), 
+		.S1_ARLen(),  
+		.S1_ARSize(), 
+		.S1_ARBurst(),
+		.S1_ARValid(),
+		.S1_ARReady(),
+	  //DS
+		.DS_ARID(),   
+		.DS_ARAddr(), 
+		.DS_ARLen(),  
+		.DS_ARSize(), 
+		.DS_ARBurst(),
+		.DS_ARValid(),
+		.DS_ARReady()
+	);
 
+	Rdata	Rdata_inst(
+	  //M0
+		.M0_RID(),  
+		.M0_RData(),
+		.M0_RStrb(),
+		.M0_RLast(),
+		.M0_RValid(),
+		.M0_RReady(),
+	  //M1
+		.M1_RID(),  
+		.M1_RData(),
+		.M1_RStrb(),
+		.M1_RLast(),
+		.M1_RValid(),
+		.M1_RReady(),
+	  //S0
+		.S0_RID(),  
+		.S0_RData(),
+		.S0_RStrb(),
+		.S0_RLast(),
+		.S0_RValid(),
+		.S0_RReady(),
+	  //S1		
+		.S1_RID(),  
+		.S1_RData(),
+		.S1_RStrb(),
+		.S1_RLast(),
+		.S1_RValid(),
+		.S1_RReady(),
+	  //DS		
+		.DS_RID(),  
+		.DS_RData(),
+		.DS_RStrb(),
+		.DS_RLast(),
+		.DS_RValid(),
+		.DS_RReady()
+	);
 
+	Waddr	Waddr_inst(
+	  //M0
+	  //M1
+		.M1_AWID(),   
+		.M1_AWAddr(), 
+		.M1_AWLen(),  
+		.M1_AWSize(), 
+		.M1_AWBurst(),
+		.M1_AWValid(),
+		.M1_AWReady(),
+	  //S0
+		.S0_AWID(),   
+		.S0_AWAddr(), 
+		.S0_AWLen(),  
+		.S0_AWSize(), 
+		.S0_AWBurst(),
+		.S0_AWValid(),
+		.S0_AWReady(),
+	  //S1
+		.S1_AWID(),   
+		.S1_AWAddr(), 
+		.S1_AWLen(),  
+		.S1_AWSize(), 
+		.S1_AWBurst(),
+		.S1_AWValid(),
+		.S1_AWReady(),
+	  //DS
+		.DS_AWID(),   
+		.DS_AWAddr(), 
+		.DS_AWLen(),  
+		.DS_AWSize(), 
+		.DS_AWBurst(),
+		.DS_AWValid(),
+		.DS_AWReady() 
+	);
 
+	Wdata	Wdata_inst(
+		.M1_WData, 
+		.M1_WStrb, 
+		.M1_WLast, 
+		.M1_WValid,
+		.M1_WReady,
+		.S0_WData, 
+		.S0_WStrb, 
+		.S0_WLast, 
+		.S0_WValid,
+		.S0_WReady,
+		.S1_WData, 
+		.S1_WStrb, 
+		.S1_WLast, 
+		.S1_WValid,
+		.S1_WReady,
+		.DS_WData, 
+		.DS_WStrb, 
+		.DS_WLast, 
+		.DS_WValid,
+		.DS_WReady 
+	);
 
+	Wresp	Wresp_inst(
 
-
-
-
-
-
-
-
+	);
 endmodule

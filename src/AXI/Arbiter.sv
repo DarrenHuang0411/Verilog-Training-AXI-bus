@@ -2,8 +2,6 @@
     //Module Name :　CPU_wrapper
     //Type        :  
 //----------------------- Environment -----------------------//
-    `include ""
-    `include "CPU.sv"
 
 //------------------------- Module -------------------------//
     module Arbiter (
@@ -35,20 +33,21 @@
     );
   //----------------------- Parameter -----------------------//
     //FSM
-        S_cur, S_nxt;
         parameter [1:0] idle    =   2'd0,
                         I0      =   2'd1,
                         I1      =   2'd2;
   //------------------------- FSM -------------------------//
-    
-
-    // always_ff @(posedge clk or posedge rst) begin
-        
-    // end
-    //input case 條件 from 誰
-
     always_comb begin
-        case (input_case)
+      unique if(I0_Valid)
+        Master_sel  =   2'd1; 
+      else if(I1_Valid)
+        Master_sel  =   2'd2;       
+      else
+        Master_sel  =   2'd0;        
+    end
+    
+    always_comb begin
+        case (Master_sel)
             I0: begin
                 O_IDS       =   {4'b0000, I0_ID};   
                 O_Addr      =   I0_Addr;
