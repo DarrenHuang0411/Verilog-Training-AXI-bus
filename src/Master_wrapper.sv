@@ -5,7 +5,7 @@
     module Master_wrapper #(
       parameter   C_ID  = 4'b0000
     ) (
-        input       clock, ARSTN,
+        input       clk, ARSTN,
       //CPU Memory Port 
         input           Memory_WEB, 
         input           [`DATA_WIDTH -1:0]      Memory_BWEB, // transfer to strb

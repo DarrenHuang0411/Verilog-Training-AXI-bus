@@ -12,5 +12,6 @@
     //IEEE 754
     `define EXP             8
     `define FRACTION        23  
-        
+    //Memory Define
+    `define MEM_ADDR_LEN    14   
 `endif

@@ -39,8 +39,7 @@
         output  logic [`AXI_SIZE_BITS -1:0]   DS_AWSize,      
         output  logic [1:0]                   DS_AWBurst,   
         output  logic                         DS_AWValid,    
-        input   logic                         DS_AWReady
-        
+        input   logic                         DS_AWReady    
     );
   //----------------------- Parameter -----------------------//
     //M0 (not use --> prevent logic)

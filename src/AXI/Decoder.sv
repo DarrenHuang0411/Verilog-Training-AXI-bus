@@ -2,8 +2,6 @@
     //Module Name :　Decoder
     //Type        :  
 //----------------------- Environment -----------------------//
-    `include ""
-    `include "CPU.sv"
 
 //------------------------- Module -------------------------//
     module Decoder (

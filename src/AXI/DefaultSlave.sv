@@ -16,7 +16,11 @@
         input                           DS_AWValid  ,
         output  logic                   DS_AWReady  ,
       //W channel - data
-
+        input   [`AXI_DATA_BITS -1:0]   DS_WData ,
+        input   [`AXI_STRB_BITS -1:0]   DS_WStrb   ,
+        input                           DS_WLast   ,
+        input                           DS_WValid  ,
+        output  logic                   DS_WReady  ,
       //R channel - Addr
         input   DS_ARID ,
         input   DS_ARAddr   ,
@@ -37,13 +41,14 @@
   //----------------------- Main Code -----------------------//
     //---------------------    FSM    ---------------------//
         always_ff @(posedge clk or posedge rst) begin
-            if ()   S_cur <=  2'd0;
-            else    S_cur <=  S_nxt;
+            if (rst)   S_cur <=  2'd0;
+            else       S_cur <=  S_nxt;
         end
     //--------------------- W channel ---------------------// 
       //Addr
         assign  DS_AWReady =  (DS_AWValid)  ? 1'b1  : 1'b0;   
       //Data
+
       //Response
     //--------------------- R channel ---------------------//
       //Addr
