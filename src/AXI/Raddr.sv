@@ -2,7 +2,6 @@
     //Module Name :　Waddr
     //Type        :  
 //----------------------- Environment -----------------------//
-    `include ""
 
 //------------------------- Module -------------------------//
     module Raddr (
@@ -108,13 +107,13 @@
         .I_Valid    (Arb_Dec_Valid),
         .IB_Ready   (Dec_Arb_Ready),
       //Slave 0 --> IM 
-        .O0_Valid   (),
+        .O0_Valid   (S0_ARValid),
         .OB0_Ready  (S0_ARReady),
       //Slave 1 --> DM
-        .O1_Valid   (),
+        .O1_Valid   (S1_ARValid),
         .OB1_Ready  (S1_ARReady),     
       //Default Slave 
-        .ODefault_Valid   (),
+        .ODefault_Valid   (DS_ARValid),
         .OBDefault_Ready  (DS_ARReady)   
     );
    

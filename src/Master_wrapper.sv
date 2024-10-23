@@ -52,74 +52,94 @@
                 WADDR     = 3'd3,
                 WDATA     = 3'd4,
                 WRESP     = 3'd5;
+    //CNT
+      logic   [`AXI_LEN_BITS -1:0]  cnt;
     //Done Signal 
     logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
-  //------------------------- FSM -------------------------//
-    always_ff @(posedge clk or posedge ARSTN) begin
-        if(!ARSTN)
-            S_cur   = INITIAL;
-        else
-            S_cur   = S_nxt;
-    end
+  //----------------------- Main Code -----------------------//    
+    //------------------------- FSM -------------------------//
+      always_ff @(posedge clk or posedge ARSTN) begin
+          if(!ARSTN)
+              S_cur   = INITIAL;
+          else
+              S_cur   = S_nxt;
+      end
 
-    always_comb begin
-      case (S_cur)
-        INITIAL:  begin
-          unique if(M_ARValid) begin
-            S_nxt   = RADDR;
+      always_comb begin
+        case (S_cur)
+          INITIAL:  begin
+            unique if(M_ARValid) begin
+              S_nxt   = RADDR;
+            end
+            else if  (M_AWValid) begin
+              S_nxt   = WADDR;           
+            end
+            else begin
+              S_nxt   = INITIAL;
+            end
           end
-          else if  (M_AWValid) begin
-            S_nxt   = WADDR;           
-          end
+          RADDR:  S_nxt  = (Raddr_done) ? RDATA   : RADDR; 
+          RDATA:  S_nxt  = (Rdata_done) ? INITIAL : RDATA; 
+          WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
+          WDATA:  S_nxt  = (Wdata_done) ? WRESP   : WDATA; 
+          WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
+          default:  S_nxt  = INITIAL;
+        endcase
+      end
+    //--------------------- Done Signal ---------------------//
+      assign  Raddr_done  = M_ARValid & M_ARReady; 
+      assign  Rdata_done  = M_RValid  & M_RReady;
+      assign  Waddr_done  = M_AWValid & M_AWReady;
+      assign  Wdata_done  = M_WValid  & M_WReady;
+      assign  Wresp_done  = M_ARValid & M_ARReady;
+    //------------------------- CNT -------------------------//
+        always_ff @(posedge clk or posedge rst) begin
+          if (rst) begin
+            cnt   <=  `AXI_LEN_BITS'd0;
+          end 
           else begin
-            S_nxt   = INITIAL;
+            if(R_last || W_last)  begin
+              cnt   <=  `AXI_LEN_BITS'd0;            
+            end
+            else if (Rdata_done || Wdata_done) begin
+              cnt   <=  cnt + `AXI_LEN_BITS'd1;            
+            end
+            else  begin
+              cnt   <=  cnt;
+            end
           end
         end
-        RADDR:  S_nxt  = (Raddr_done) ? RDATA   : RADDR; 
-        RDATA:  S_nxt  = (Rdata_done) ? INITIAL : RDATA; 
-        WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
-        WDATA:  S_nxt  = (Wdata_done) ? WRESP   : WDATA; 
-        WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
-        default:  S_nxt  = INITIAL;
-      endcase
-    end
-  //--------------------- Done Signal ---------------------//
-    assign  Raddr_done  = M_ARValid & M_ARReady; 
-    assign  Rdata_done  = M_RValid  & M_RReady;
-    assign  Waddr_done  = M_AWValid & M_AWReady;
-    assign  Wdata_done  = M_WValid  & M_WReady;
-    assign  Wresp_done  = M_ARValid & M_ARReady;
-  //---------------------- W-channel ----------------------//
-    //Addr
-    assign  M_AWID      = `C_ID;
-    assign  M_AWLen     = `AXI_LEN_BITS'd0;
-    assign  M_AWSize    = `AXI_SIZE_BITS'd0;
-    assign  M_AWBurst   = `AXI_BURST_INC; 
-    assign  M_AWAddr    = Memory_Addr;
-    
-    always_comb begin
-      case (S_cur)
-        INITIAL:  M_AWValid = 
-        WADDR:    M_AWValid = 1'b1;
-        default:  M_AWValid = 1'b0;
-      endcase     
-    end
-    //Data
-    assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
-    assign  M_WLast   =   
-    assign  M_WData   =   Memory_Din;
-    assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
-    //Response
+    //---------------------- W-channel ----------------------//
+      //Addr
+      assign  M_AWID      = `C_ID;
+      assign  M_AWLen     = `AXI_LEN_BITS'd0;
+      assign  M_AWSize    = `AXI_SIZE_BITS'd0;
+      assign  M_AWBurst   = `AXI_BURST_INC; 
+      assign  M_AWAddr    = Memory_Addr;
+      
+      always_comb begin
+        case (S_cur)
+          INITIAL:  M_AWValid = 
+          WADDR:    M_AWValid = 1'b1;
+          default:  M_AWValid = 1'b0;
+        endcase     
+      end
+      //Data
+      assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
+      assign  M_WLast   =   
+      assign  M_WData   =   Memory_Din;
+      assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
+      //Response
 
-  //---------------------- R-channel ----------------------//
-    //Addr
-    assign  M_ARID      = `C_ID;
-    assign  M_ARLen     = `AXI_LEN_BITS'd0;
-    assign  M_ARSize    = `AXI_SIZE_BITS'd0;
-    assign  M_ARBurst   = `AXI_BURST_INC; 
-    assign  M_ARAddr    = Memory_Addr;    
-    //Data
-    assign  Memory_Dout = (Rdata_done)  ? M_RData : ;
-    assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
+    //---------------------- R-channel ----------------------//
+      //Addr
+      assign  M_ARID      = `C_ID;
+      assign  M_ARLen     = `AXI_LEN_BITS'd0;
+      assign  M_ARSize    = `AXI_SIZE_BITS'd0;
+      assign  M_ARBurst   = `AXI_BURST_INC; 
+      assign  M_ARAddr    = Memory_Addr;    
+      //Data
+      assign  Memory_Dout = (Rdata_done)  ? M_RData : ;
+      assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
 
 endmodule
