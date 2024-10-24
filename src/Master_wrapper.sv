@@ -3,7 +3,8 @@
 
 //------------------------- Module -------------------------//
     module Master_wrapper #(
-      parameter   C_ID  = 4'b0000
+      parameter   C_ID  = 4'b0000,
+      parameter   C_LEN = `AXI_LEN_BITS'd16
     ) (
         input       clk, ARSTN,
       //CPU Memory Port 
@@ -86,6 +87,9 @@
           default:  S_nxt  = INITIAL;
         endcase
       end
+    //--------------------- Last Signal ---------------------//  
+      assign  W_last  = S_WLast & Wdata_done;
+      //assign  R_last  = S_RLast & Rdata_done;      
     //--------------------- Done Signal ---------------------//
       assign  Raddr_done  = M_ARValid & M_ARReady; 
       assign  Rdata_done  = M_RValid  & M_RReady;
@@ -98,10 +102,10 @@
             cnt   <=  `AXI_LEN_BITS'd0;
           end 
           else begin
-            if(R_last || W_last)  begin
+            if(W_last)  begin
               cnt   <=  `AXI_LEN_BITS'd0;            
             end
-            else if (Rdata_done || Wdata_done) begin
+            else if (Wdata_done) begin
               cnt   <=  cnt + `AXI_LEN_BITS'd1;            
             end
             else  begin
@@ -111,22 +115,22 @@
         end
     //---------------------- W-channel ----------------------//
       //Addr
-      assign  M_AWID      = `C_ID;
-      assign  M_AWLen     = `AXI_LEN_BITS'd0;
+      assign  M_AWID      = C_ID;
+      assign  M_AWLen     = C_LEN;
       assign  M_AWSize    = `AXI_SIZE_BITS'd0;
       assign  M_AWBurst   = `AXI_BURST_INC; 
       assign  M_AWAddr    = Memory_Addr;
       
       always_comb begin
         case (S_cur)
-          INITIAL:  M_AWValid = 
+          INITIAL:  M_AWValid = (!Memory_WEB) ? 1'b1 : 1'b0;
           WADDR:    M_AWValid = 1'b1;
           default:  M_AWValid = 1'b0;
         endcase     
       end
       //Data
       assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
-      assign  M_WLast   =   
+      assign  M_WLast   =   (cnt == reg_AWLen)  ? 1'b1  : 1'b0; 
       assign  M_WData   =   Memory_Din;
       assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
       //Response

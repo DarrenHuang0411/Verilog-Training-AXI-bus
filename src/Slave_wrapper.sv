@@ -42,9 +42,10 @@
         output  logic                         S_RValid,  
         input                                 S_RReady,
       //To Memory  
+        output  logic                         WEB,
         output  logic [`DATA_WIDTH    -1:0]   BWEB,
         output  logic [`DATA_WIDTH    -1:0]   DI,
-        input         [`DATA_WIDTH    -1:0]   DO,
+        input         [`DATA_WIDTH    -1:0]   DO
 
     );
 
@@ -184,7 +185,7 @@
         end
       //data
         assign  S_RID     = reg_ARID;
-        //Data problem (need t solve)
+        //Data problem (need to solve)
         assign  S_RData   = DO;
 
         assign  S_RResp   = `AXI_RESP_OKAY;
@@ -200,8 +201,16 @@
           end
         end
         //WEB
+        always_comb begin
+          case (S_cur)
+            SADDR:    WEB   = 1'b0;
+            RDATA:    WEB   = 1'b1;
+            WDATA:    WEB   = 1'b1;
+            default:  WEB   = 1'b0;
+          endcase
+        end
 
-        assign  BWEB      = {S_WStrb,S_WStrb,S_WStrb,S_WStrb};
+        assign  BWEB      = {{8{S_WStrb[3]}}, {8{S_WStrb[2]}},  {8{S_WStrb[1]}}, {8{S_WStrb[0]}}};
           
         always_comb begin
           case (S_cur)
@@ -212,5 +221,5 @@
           endcase
         end
         assign  DI        = S_WData;
-
+        
     endmodule
