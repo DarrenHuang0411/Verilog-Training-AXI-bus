@@ -27,6 +27,11 @@
         output  logic                           M_WLast,   
         output  logic                           M_WValid,  
         input                                   M_WReady,
+      //AXI Wresp
+        input         [`AXI_IDS_BITS -1:0]      M_BID,
+        input         [1:0]                     M_BResp,
+        input                                   M_BValid,
+        output  logic                           M_BReady,                   
       //AXI Raddr
         output  logic   [`AXI_ID_BITS -1:0]     M_ARID,    
         output  logic   [`AXI_ADDR_BITS -1:0]   M_ARAddr,  
@@ -54,9 +59,9 @@
                 WDATA     = 3'd4,
                 WRESP     = 3'd5;
     //CNT
-      logic   [`AXI_LEN_BITS -1:0]  cnt;
+      logic   [`AXI_LEN_BITS  -1:0]  cnt;      
     //Done Signal 
-    logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
+      logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
   //----------------------- Main Code -----------------------//    
     //------------------------- FSM -------------------------//
       always_ff @(posedge clk or posedge ARSTN) begin
@@ -134,7 +139,7 @@
       assign  M_WData   =   Memory_Din;
       assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
       //Response
-
+      assign  M_BReady  =   (S_cur == WRESP | Wdata_done)? 1'b1 : 1'b0;
     //---------------------- R-channel ----------------------//
       //Addr
       assign  M_ARID      = `C_ID;
@@ -143,7 +148,10 @@
       assign  M_ARBurst   = `AXI_BURST_INC; 
       assign  M_ARAddr    = Memory_Addr;    
       //Data
-      assign  Memory_Dout = (Rdata_done)  ? M_RData : ;
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
-
+    //------------------------- CPU -------------------------//
+      always_ff @(posedge clock or posedge rst) begin
+          if(rst)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
+          else      Memory_Dout  <=  (Raddr_done)  ? M_RData : reg_RData;
+      end
 endmodule

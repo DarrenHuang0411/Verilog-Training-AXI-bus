@@ -8,44 +8,46 @@
     module Slave_wrapper (
         input   ACLK, ARESETn,
       //AXI Waddr
-        input  [`AXI_IDS_BITS -1:0]    S_AWID,    
-        input  [`AXI_ADDR_BITS -1:0]   S_AWAddr,  
-        input  [`AXI_LEN_BITS -1:0]    S_AWLen,   
-        input  [`AXI_SIZE_BITS -1:0]   S_AWSize,  
-        input  [1:0]                   S_AWBurst, 
-        input                          S_AWValid, 
-        output  logic                  S_AWReady,
+        input  [`AXI_IDS_BITS -1:0]         S_AWID,    
+        input  [`AXI_ADDR_BITS -1:0]        S_AWAddr,  
+        input  [`AXI_LEN_BITS -1:0]         S_AWLen,   
+        input  [`AXI_SIZE_BITS -1:0]        S_AWSize,  
+        input  [1:0]                        S_AWBurst, 
+        input                               S_AWValid, 
+        output  logic                       S_AWReady,
       //AXI Wdata     
-        input  [`AXI_DATA_BITS -1:0]   S_WData,   
-        input  [`AXI_STRB_BITS -1:0]   S_WStrb,   
-        input                          S_WLast,   
-        input                          S_WValid,  
-        output  logic                  S_WReady,
+        input  [`AXI_DATA_BITS -1:0]        S_WData,   
+        input  [`AXI_STRB_BITS -1:0]        S_WStrb,   
+        input                               S_WLast,   
+        input                               S_WValid,  
+        output  logic                       S_WReady,
       //AXI Wresp
         output  logic [`AXI_IDS_BITS -1:0]  S_BID,
         output  logic [1:0]                 S_BResp,
         output  logic                       S_BValid,
         input                               S_BReady,           
       //AXI Raddr
-        input  [`AXI_IDS_BITS -1:0]    S_ARID,    
-        input  [`AXI_ADDR_BITS -1:0]   S_ARAddr,  
-        input  [`AXI_LEN_BITS -1:0]    S_ARLen,   
-        input  [`AXI_SIZE_BITS -1:0]   S_ARSize,  
-        input  [1:0]                   S_ARBurst, 
-        input                          S_ARValid, 
-        output  logic                  S_ARReady,
+        input  [`AXI_IDS_BITS -1:0]         S_ARID,    
+        input  [`AXI_ADDR_BITS -1:0]        S_ARAddr,  
+        input  [`AXI_LEN_BITS -1:0]         S_ARLen,   
+        input  [`AXI_SIZE_BITS -1:0]        S_ARSize,  
+        input  [1:0]                        S_ARBurst, 
+        input                               S_ARValid, 
+        output  logic                       S_ARReady,
       //AXI Rdata   
-        output  logic [`AXI_IDS_BITS   -1:0]  S_RID,         
-        output  logic [`AXI_DATA_BITS -1:0]   S_RData,   
-        output  logic [1:0]                   S_RResp,   
-        output  logic                         S_RLast,   
-        output  logic                         S_RValid,  
-        input                                 S_RReady,
-      //To Memory  
-        output  logic                         WEB,
-        output  logic [`DATA_WIDTH    -1:0]   BWEB,
-        output  logic [`DATA_WIDTH    -1:0]   DI,
-        input         [`DATA_WIDTH    -1:0]   DO
+        output  logic [`AXI_IDS_BITS  -1:0] S_RID,         
+        output  logic [`AXI_DATA_BITS -1:0] S_RData,   
+        output  logic [1:0]                 S_RResp,   
+        output  logic                       S_RLast,   
+        output  logic                       S_RValid,  
+        input                               S_RReady,
+      //To Memory
+        output  logic                       CEB,  
+        output  logic                       WEB,
+        output  logic [`DATA_WIDTH    -1:0] BWEB,
+        output  logic [`MEM_ADDR_LEN  -1:0] A,
+        output  logic [`DATA_WIDTH    -1:0] DI,
+        input         [`DATA_WIDTH    -1:0] DO
 
     );
 
@@ -62,7 +64,6 @@
       logic   [`AXI_IDS_BITS -1:0]  reg_ARID , reg_AWID;
       logic   [`MEM_ADDR_LEN -1:0]  reg_ARAddr, reg_AWAddr; 
       logic   [`AXI_LEN_BITS -1:0]  reg_ARLen, reg_AWLen;
-      logic   [`AXI_DATA_BITS-1:0]
     //Last Signal
       logic   W_last, R_last;
     //Done Signal 
@@ -217,7 +218,7 @@
             SADDR:  A = (Waddr_done)  ? S_AWAddr[15:2]  :  S_ARAddr[15:2];
             RDATA:  A = reg_ARAddr;
             WDATA:  A = reg_AWAddr;
-            default: 
+            default: A = 14'd0;
           endcase
         end
         assign  DI        = S_WData;
