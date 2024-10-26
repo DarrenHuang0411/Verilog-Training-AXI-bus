@@ -30,9 +30,17 @@
         output  logic [`AXI_STRB_BITS -1:0]   DS_WStrb,  
         output  logic                         DS_WLast,    
         output  logic                         DS_WValid, 
-        input                                 DS_WReady           
-    )
+        input                                 DS_WReady,
+      //help signal
+        input                                 S0_AWValid, 
+        input                                 S1_AWValid,
+        input                                 DS_AWValid          
+    );
   //----------------------- Parameter -----------------------//
+    logic       Master_sel;
+    parameter [1:0] M0 = 4'b0001,
+                    M1 = 4'b0010;  
+
     logic     Slave_sel;
     parameter [1:0] S0 = 3'b001,
                     S1 = 3'b010,
@@ -48,14 +56,12 @@
         assign  S0_WStrb  = M1_WStrb;//
         assign  S0_WLast  = M1_WLast;
     //Slave 1 --> DM 
-        assign  S0_WData  = M1_WData;
-        assign  S0_WStrb  = M1_WStrb;//
-        assign  S0_WLast  = M1_WLast;
+        assign  S1_WData  = M1_WData;
+        assign  S1_WStrb  = M1_WStrb;//
+        assign  S1_WLast  = M1_WLast;
     //Default Slave 
     //Ready back to check
-      S0_sel
-      S1_sel
-      DS_sel
+
       assign  Slave_sel = {DS_AWValid, S1_AWValid, S0_AWValid};
 
       always_comb begin

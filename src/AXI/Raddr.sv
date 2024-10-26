@@ -2,7 +2,8 @@
     //Module Name :　Waddr
     //Type        :  
 //----------------------- Environment -----------------------//
-
+    `include "./AXI/Arbiter.sv"
+    `include "./AXI/Decoder.sv"
 //------------------------- Module -------------------------//
     module Raddr (
         input           clk, rst,

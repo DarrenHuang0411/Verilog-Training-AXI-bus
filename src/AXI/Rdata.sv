@@ -45,7 +45,7 @@
   //----------------------- Parameter -----------------------//
     logic   [`AXI_ID_BITS   -1:0]   O_ID;
     logic   [`AXI_DATA_BITS -1:0]   O_Data;
-    logic   [`AXI_STRB_BITS -1:0]   O_Strb;
+    logic   [1:0]                   O_Resp;
     logic                           O_Last;
     
     logic       Slave_sel;             
@@ -55,6 +55,9 @@
     logic       Master_sel;
     parameter [1:0] M0 = 4'b0001,
                     M1 = 4'b0010;  
+    
+    logic     Dec_Arib_Valid;
+    logic     Arib_Dec_Ready;
   //----------------------- Main Code -----------------------//
     always_comb begin
         unique if (DS_RValid) 
@@ -73,28 +76,28 @@
                 Master_sel  =   S0_RID[7:4];
                 O_ID        =   S0_RID[3:0];  
                 O_Data      =   S0_RData;
-                O_Strb      =   S0_RStrb;
+                O_Resp      =   S0_RResp;
                 O_Last      =   S0_RLast;                
             end
             S1: begin
                 Master_sel  =   S1_RID[7:4];   
                 O_ID        =   S1_RID[3:0];  
                 O_Data      =   S1_RData;
-                O_Strb      =   S1_RStrb;
+                O_Resp      =   S1_RResp;
                 O_Last      =   S1_RLast;                                  
             end
             DS: begin
                 Master_sel  =   DS_RID[7:4];
                 O_ID        =   DS_RID[3:0];  
                 O_Data      =   DS_RData;
-                O_Strb      =   DS_RStrb;
+                O_Resp      =   DS_RResp;
                 O_Last      =   DS_RLast;                                     
             end 
             default: begin
                 Master_sel  =   `AXI_ID_BITS'd0;
                 O_ID        =   `AXI_ID_BITS'd0;  
                 O_Data      =   `AXI_IDS_BITS'd0; 
-                O_Strb      =   2'd0;
+                O_Resp      =   2'b0;
                 O_Last      =   1'b0;                    
             end
         endcase
@@ -102,28 +105,28 @@
 
     assign  M0_RID      =   O_ID;
     assign  M0_RData    =   O_Data;
-    assign  M0_RStrb    =   O_Strb;
+    assign  M0_RResp    =   O_Resp;
     assign  M0_RLast    =   O_Last;
 
     assign  M1_RID      =   O_ID;
     assign  M1_RData    =   O_Data;
-    assign  M1_RStrb    =   O_Strb;
+    assign  M1_RResp    =   O_Resp;
     assign  M1_RLast    =   O_Last;    
 
     always_comb begin
         case (Master_sel)
             M0: begin
-                Dec_Arib_Ready  =   S0_WReady;
-                M0_RValid       =   Arib_Dec_Valid;
+                Arib_Dec_Ready  =   M0_RReady;
+                M0_RValid       =   Dec_Arib_Valid;
                 M1_RValid       =   1'b0;
             end
             M1: begin
-                Dec_Arib_Ready  = S1_WReady;                             
-                M0_RValid       = 1'b0;
-                M1_RValid       = Arib_Dec_Valid;               
+                Arib_Dec_Ready  =   M1_RReady;                         
+                M0_RValid       =   1'b0;
+                M1_RValid       =   Dec_Arib_Valid;               
             end
             default: begin
-                Dec_Arib_Ready  = 1'b0;//             
+                Arib_Dec_Ready  = 1'b0;        
                 M0_RValid       = 1'b0;
                 M1_RValid       = 1'b0;               
             end  

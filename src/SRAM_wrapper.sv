@@ -1,3 +1,11 @@
+//--------------------------- Info ---------------------------//
+    //Module Name :　SRAM_wrapper
+    //Type        : 
+//----------------------- Environment -----------------------//
+    `include "Slave_wrapper.sv"
+
+//------------------------- Module -------------------------//
+
 module SRAM_wrapper (
     input   CLK, RST,
   //AXI Waddr
@@ -33,7 +41,7 @@ module SRAM_wrapper (
     output  logic [1:0]                 S_RResp,   
     output  logic                       S_RLast,   
     output  logic                       S_RValid,  
-    input                               S_RReady,
+    input                               S_RReady
 
 );
 
@@ -105,7 +113,7 @@ module SRAM_wrapper (
       .BWEB     (w_BWEB),
       .RTSEL    (2'b01),
       .WTSEL    (2'b01),
-      .Q        (w_DI)
+      .Q        (w_Do)
 );
 
 

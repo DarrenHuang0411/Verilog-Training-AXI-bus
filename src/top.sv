@@ -2,9 +2,10 @@
     //Module Name :　System top module
     //Type        : 
 //----------------------- Environment -----------------------//
+    `include "../include/CPU_define.svh"
     `include "../include/AXI_define.svh"
     `include "CPU_wrapper.sv"
-    `include "./AXI/AXI.sv"
+    `include "AXI/AXI.sv"
     `include "SRAM_wrapper.sv"
 
 //------------------------- Module -------------------------//
@@ -342,7 +343,7 @@
         .RREADY_S1  (B2S1_RReady)
     );
 
-    SRAM_wrapper SRAM_wrapper_IM_inst(
+    SRAM_wrapper IM1(
         .CLK(clk),  .RST(rst),
       //B2M_AW
         .S_AWID     (B2S0_AWID   ),    
@@ -378,9 +379,9 @@
         .S_RLast    (B2S0_RLast ),   
         .S_RValid   (B2S0_RValid),  
         .S_RReady   (B2S0_RReady)
-); 
+    ); 
 
-    SRAM_wrapper SRAM_wrapper_DM_inst(
+    SRAM_wrapper DM1(
         .CLK(clk),  .RST(rst),
       //B2M_AW
         .S_AWID     (B2S1_AWID   ),    
@@ -410,13 +411,13 @@
         .S_ARValid  (B2S1_ARValid), 
         .S_ARReady  (B2S1_ARReady),
       //B2M_R   
-        .S_RID      (B2S0_RID   ),         
-        .S_RData    (B2S0_RData ),   
-        .S_RResp    (B2S0_RResp ),   
-        .S_RLast    (B2S0_RLast ),   
-        .S_RValid   (B2S0_RValid),  
-        .S_RReady   (B2S0_RReady)
-); 
+        .S_RID      (B2S1_RID   ),         
+        .S_RData    (B2S1_RData ),   
+        .S_RResp    (B2S1_RResp ),   
+        .S_RLast    (B2S1_RLast ),   
+        .S_RValid   (B2S1_RValid),  
+        .S_RReady   (B2S1_RReady)
+    ); 
 
     endmodule
 

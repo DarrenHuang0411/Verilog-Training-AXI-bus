@@ -33,9 +33,11 @@
     );
   //----------------------- Parameter -----------------------//
     //FSM
-        parameter [1:0] idle    =   2'd0,
-                        I0      =   2'd1,
-                        I1      =   2'd2;
+      parameter [1:0] idle    =   2'd0,
+                      I0      =   2'd1,
+                      I1      =   2'd2;
+    //Internal Connect
+      logic   [1:0]   Master_sel;
   //------------------------- FSM -------------------------//
     always_comb begin
       unique if(I0_Valid)

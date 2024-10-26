@@ -2,7 +2,6 @@
     //Module Name :　Wresp
     //Type        :  
 //----------------------- Environment -----------------------//
-    `include ""
 
 //------------------------- Module -------------------------//
     module Wresp (
@@ -31,9 +30,7 @@
     );
   //----------------------- Parameter -----------------------//
     logic   [`AXI_ID_BITS   -1:0]   O_ID;
-    logic   [`AXI_DATA_BITS -1:0]   O_Data;
-    logic   [`AXI_STRB_BITS -1:0]   O_Strb;
-    logic                           O_Last;
+    logic   [1:0]                   O_Resp;
     logic                           O_Valid;
     logic                           O_Ready;
 
@@ -91,7 +88,7 @@
     end
     //Exchange (Master)
     assign  M1_BID      =   O_ID;
-    assign  M1_BResp    =   O_Data;  
+    assign  M1_BResp    =   O_Resp;  
     assign  M1_BValid   =   O_Valid;
     assign  O_Ready     =   M1_BReady;
 

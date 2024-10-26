@@ -1,6 +1,4 @@
 //----------------------- Environment -----------------------//
-    `include "../include/CPU_define.sv"
-    `include "../include/AXI_define.sv"
     `include "IF_Stage.sv"
     `include "ID_Stage.sv"
     `include "EXE_Stage.sv"
@@ -19,7 +17,7 @@ module CPU (
   //IM     
     output logic    IM_WEB,
     output logic    [`AXI_DATA_BITS -1:0] IM_addr,
-    input           IM_IF_instr,
+    input           [`DATA_WIDTH -1:0]    IM_IF_instr,
   //DM  
     output logic    DM_WEB,
     output logic    [`DATA_WIDTH -1:0] DM_BWEB,
@@ -31,7 +29,6 @@ module CPU (
 //------------------- parameter -------------------//    
     // (temp.) IF_OUT
     wire    [`DATA_WIDTH -1:0]  IF_IM_pc;
-    wire    [`DATA_WIDTH -1:0]  IM_IF_instr;
     //////////////////////////////////////////////////
     wire    [1:0]               BC_IF_branch_sel;
     wire    [`DATA_WIDTH -1:0]  EXE_IF_ALU_o;

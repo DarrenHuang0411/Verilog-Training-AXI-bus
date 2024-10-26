@@ -3,7 +3,7 @@
     //Type        :  Master 
 //----------------------- Environment -----------------------//
     `include "CPU.sv"
-
+    `include "Master_wrapper.sv"
 //------------------------- Module -------------------------//
     module CPU_wrapper (
         input   clk, rst,
@@ -44,10 +44,10 @@
         input                                  M0_BValid,
         output  logic                          M0_BReady,  
         //M1
-        input          [`AXI_ID_BITS  -1:0]    M_BID,
-        input          [1:0]                   M_BResp,
-        input                                  M_BValid,
-        output  logic                          M_BReady,                                 
+        input          [`AXI_ID_BITS  -1:0]    M1_BID,
+        input          [1:0]                   M1_BResp,
+        input                                  M1_BValid,
+        output  logic                          M1_BReady,                                 
       //R channel - Addr
         //M0
         output  logic  [`AXI_ID_BITS   -1:0]   M0_ARID,
@@ -110,13 +110,13 @@
 
     Master_wrapper Master_wrapper_IM_inst(
       //CPU-Master
-        .clk(clk), .rst(rst),
+        .ACLK(clk), .ARESETn(rst),
         .Memory_WEB   (w_IM_WEB), 
         .Memory_BWEB  (32'hffff_ffff),
         .Memory_Addr  (w_IM_addr),
         .Memory_Din   (`AXI_DATA_BITS'b0),
         .Memory_Dout  (w_IM_IF_instr),
-      //Master_AXI
+      //Master
         .M_AWID       (M0_AWID   ),  
         .M_AWAddr     (M0_AWAddr ),
         .M_AWLen      (M0_AWLen  ), 
@@ -130,7 +130,9 @@
         .M_WLast      (M0_WLast  ), 
         .M_WValid     (M0_WValid ),
         .M_WReady     (M0_wReady ),
+      //B
 
+      //AR
         .M_ARID       (M0_ARID   ),  
         .M_ARAddr     (M0_ARAddr ),
         .M_ARLen      (M0_ARLen  ), 
@@ -139,17 +141,17 @@
         .M_ARValid    (M0_ARValid),
         .M_ARReady    (M0_ARReady),
 
-        .M_RID        (M1_RID    ),   
-        .M_RData      (M1_RData  ), 
-        .M_RResp      (M1_RResp  ), 
-        .M_RLast      (M1_RLast  ), 
-        .M_RValid     (M1_RValid ),
-        .M_RReady     (M1_RReady )
+        .M_RID        (M0_RID    ),   
+        .M_RData      (M0_RData  ), 
+        .M_RResp      (M0_RResp  ), 
+        .M_RLast      (M0_RLast  ), 
+        .M_RValid     (M0_RValid ),
+        .M_RReady     (M0_RReady )
 
     );
 
     Master_wrapper Master_wrapper_DM_inst(
-        .clk(clk), .rst(rst),
+        .ACLK(clk), .ARESETn(rst),
         .Memory_WEB   (w_DM_WEB  ), 
         .Memory_BWEB  (w_DM_BWEB ),
         .Memory_Addr  (w_DM_addr ),
@@ -170,7 +172,7 @@
         .M_WValid     (M1_WValid ),
         .M_WReady     (M1_wReady ),
 
-
+      //B
 
         .M_ARID       (M1_ARID   ),  
         .M_ARAddr     (M1_ARAddr ),

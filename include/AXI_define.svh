@@ -19,5 +19,5 @@
 
 
 //slave BaseAddr(add youself)
-    `define SLAVE1_BASE_ADDR 32'h0000_0000
-    `define SLAVE2_BASE_ADDR 32'h0001_0000
+    `define SLAVE1_BASE_ADDR 16'h0000//_0000
+    `define SLAVE2_BASE_ADDR 16'h0001//_0000

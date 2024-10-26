@@ -4,9 +4,9 @@
 //------------------------- Module -------------------------//
     module Master_wrapper #(
       parameter   C_ID  = 4'b0000,
-      parameter   C_LEN = `AXI_LEN_BITS'd16
+      parameter   C_LEN = `AXI_LEN_BITS'd15
     ) (
-        input       clk, ARSTN,
+        input       ACLK, ARESETn,
       //CPU Memory Port 
         input           Memory_WEB, 
         input           [`DATA_WIDTH -1:0]      Memory_BWEB, // transfer to strb
@@ -43,7 +43,7 @@
       //AXI Rdata   
         input           [`AXI_ID_BITS   -1:0]   M_RID,         
         input           [`AXI_DATA_BITS -1:0]   M_RData,   
-        input           [`AXI_STRB_BITS -1:0]   M_RStrb,   
+        input           [`AXI_STRB_BITS -1:0]   M_RResp,   
         input                                   M_RLast,   
         input                                   M_RValid,  
         output  logic                           M_RReady                  
@@ -58,14 +58,16 @@
                 WADDR     = 3'd3,
                 WDATA     = 3'd4,
                 WRESP     = 3'd5;
+    //Data register
+      logic   [`AXI_DATA_BITS -1:0]  reg_RData;
     //CNT
       logic   [`AXI_LEN_BITS  -1:0]  cnt;      
     //Done Signal 
       logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
   //----------------------- Main Code -----------------------//    
     //------------------------- FSM -------------------------//
-      always_ff @(posedge clk or posedge ARSTN) begin
-          if(!ARSTN)
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn)
               S_cur   = INITIAL;
           else
               S_cur   = S_nxt;
@@ -93,7 +95,7 @@
         endcase
       end
     //--------------------- Last Signal ---------------------//  
-      assign  W_last  = S_WLast & Wdata_done;
+      assign  W_last  = M_WLast & Wdata_done;
       //assign  R_last  = S_RLast & Rdata_done;      
     //--------------------- Done Signal ---------------------//
       assign  Raddr_done  = M_ARValid & M_ARReady; 
@@ -102,8 +104,8 @@
       assign  Wdata_done  = M_WValid  & M_WReady;
       assign  Wresp_done  = M_ARValid & M_ARReady;
     //------------------------- CNT -------------------------//
-        always_ff @(posedge clk or posedge rst) begin
-          if (rst) begin
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if (ARESETn) begin
             cnt   <=  `AXI_LEN_BITS'd0;
           end 
           else begin
@@ -135,14 +137,14 @@
       end
       //Data
       assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
-      assign  M_WLast   =   (cnt == reg_AWLen)  ? 1'b1  : 1'b0; 
+      assign  M_WLast   =   (cnt == M_AWLen)  ? 1'b1  : 1'b0; 
       assign  M_WData   =   Memory_Din;
       assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
       //Response
       assign  M_BReady  =   (S_cur == WRESP | Wdata_done)? 1'b1 : 1'b0;
     //---------------------- R-channel ----------------------//
       //Addr
-      assign  M_ARID      = `C_ID;
+      assign  M_ARID      = C_ID;
       assign  M_ARLen     = `AXI_LEN_BITS'd0;
       assign  M_ARSize    = `AXI_SIZE_BITS'd0;
       assign  M_ARBurst   = `AXI_BURST_INC; 
@@ -150,8 +152,8 @@
       //Data
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
     //------------------------- CPU -------------------------//
-      always_ff @(posedge clock or posedge rst) begin
-          if(rst)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
-          else      Memory_Dout  <=  (Raddr_done)  ? M_RData : reg_RData;
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
+          else          Memory_Dout  <=  (Raddr_done)  ? M_RData : reg_RData;
       end
 endmodule

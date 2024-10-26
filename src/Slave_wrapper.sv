@@ -2,7 +2,6 @@
     //Module Name :　Slave_wrapper
     //Type        :  
 //----------------------- Environment -----------------------//
-    `include ""
 
 //------------------------- Module -------------------------//
     module Slave_wrapper (
@@ -48,7 +47,6 @@
         output  logic [`MEM_ADDR_LEN  -1:0] A,
         output  logic [`DATA_WIDTH    -1:0] DI,
         input         [`DATA_WIDTH    -1:0] DO
-
     );
 
   //----------------------- Parameter -----------------------//
@@ -70,8 +68,8 @@
       logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
   //----------------------- Main Code -----------------------//
     //------------------------- FSM -------------------------//
-      always_ff @(posedge clk or posedge ARSTN) begin
-          if(!ARSTN)  S_cur <=  SADDR;
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn)  S_cur <=  SADDR;
           else        S_cur <=  S_nxt;
       end
 
@@ -96,21 +94,21 @@
           RDATA:  S_nxt  = (R_last)     ? SADDR   : RDATA; 
           WDATA:  S_nxt  = (W_last)     ? WRESP   : WDATA; 
           WRESP:  S_nxt  = (Wresp_done) ? SADDR   : WRESP; 
-          default:  S_nxt  = INITIAL;
+          default:  S_nxt  = SADDR;
         endcase
       end 
     //--------------------- Last Signal ---------------------//  
       assign  W_last  = S_WLast & Wdata_done;
       assign  R_last  = S_RLast & Rdata_done;  
     //--------------------- Done Signal ---------------------//
-      assign  Raddr_done  = M_ARValid & M_ARReady; 
-      assign  Rdata_done  = M_RValid  & M_RReady;
-      assign  Waddr_done  = M_AWValid & M_AWReady;
-      assign  Wdata_done  = M_WValid  & M_WReady;
-      assign  Wresp_done  = M_BValid  & M_BReady;
+      assign  Raddr_done  = S_ARValid & S_ARReady; 
+      assign  Rdata_done  = S_RValid  & S_RReady;
+      assign  Waddr_done  = S_AWValid & S_AWReady;
+      assign  Wdata_done  = S_WValid  & S_WReady;
+      assign  Wresp_done  = S_BValid  & S_BReady;
     //------------------------- CNT -------------------------//
-        always_ff @(posedge clk or posedge rst) begin
-          if (rst) begin
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if (ARESETn) begin
             cnt   <=  `AXI_LEN_BITS'd0;
           end 
           else begin
@@ -127,18 +125,18 @@
         end
     //----------------- W-channel (priority) -----------------//
       //Addr
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_AWID     <=  `MEM_ADDR_LEN'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_AWID     <=  `MEM_ADDR_LEN'd0;
           else      reg_AWID     <=  (Waddr_done)  ? S_AWID : reg_AWID;
         end   
 
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
           else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[15:2] : reg_AWAddr;
         end   
         
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_AWLen   <=  `AXI_LEN_BITS'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_AWLen   <=  `AXI_LEN_BITS'd0;
           else      reg_AWLen   <=  (Waddr_done)  ? S_AWLen : reg_AWLen;
         end
         //awsize
@@ -161,18 +159,18 @@
         assign  S_BValid  = (S_cur == WRESP)  ? 1'b1  : 1'b0;  
     //---------------------- R-channel ----------------------// 
       //Addr
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_ARID   <=  `AXI_LEN_BITS'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_ARID   <=  `AXI_LEN_BITS'd0;
           else      reg_ARID   <=  (Raddr_done)  ? S_ARID : reg_ARID;
         end
 
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_ARAddr   <=  `MEM_ADDR_LEN'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_ARAddr   <=  `MEM_ADDR_LEN'd0;
           else      reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
         end
           
-        always_ff @(posedge clk or posedge rst) begin
-          if(rst)   reg_ARLen   <=  `AXI_LEN_BITS'd0;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(ARESETn)   reg_ARLen   <=  `AXI_LEN_BITS'd0;
           else      reg_ARLen   <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
         end
         //Rsize

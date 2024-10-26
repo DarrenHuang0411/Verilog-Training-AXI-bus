@@ -48,12 +48,18 @@
                         RDATA   =   2'd1,
                         WDATA   =   2'd2,
                         WRESP   =   2'd3;
+    //Done Signal
+      logic   Raddr_done;
+      logic   Rdata_done;
+      logic   Waddr_done;
+      logic   Wdata_done;
+      logic   Wresp_done;
     //Data register
       logic   [`AXI_LEN_BITS -1:0]  reg_ARLen;
   //----------------------- Main Code -----------------------//
     //---------------------    FSM    ---------------------//
-        always_ff @(posedge clk or posedge rst) begin
-            if (rst)   S_cur <=  SADDR;
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+            if (ARESETn)   S_cur <=  SADDR;
             else       S_cur <=  S_nxt;
         end
         

@@ -15,12 +15,12 @@
 //	Description:	Top module of AXI	 							//
 // 	Version:		1.0	    								   		//
 //////////////////////////////////////////////////////////////////////
-`include "../../include/AXI_define.svh"
-`include "Waddr.sv"
-`include "Wdata.sv"
-`include "Wresp.sv"
-`include "Raddr.sv"
-`include "Rdata.sv"
+`include "./AXI/Waddr.sv"
+`include "./AXI/Wdata.sv"
+`include "./AXI/Wresp.sv"
+`include "./AXI/Raddr.sv"
+`include "./AXI/Rdata.sv"
+`include "./AXI/DefaultSlave.sv"
 
 module AXI(
 
@@ -162,8 +162,7 @@ module AXI(
 	input [1:0] 						RRESP_S1,
 	input 								RLAST_S1,
 	input 								RVALID_S1,
-	output logic 						RREADY_S1
-	
+	output logic 						RREADY_S1	
 );
 
   //---------- you should put your design here ----------//
@@ -205,6 +204,7 @@ module AXI(
 
   //-------------------- Main code --------------------//	
 	Raddr	Raddr_inst(
+		.clk(clk), .rst(rst),
 	  //M0
 		.M0_ARID	(ARID_M0),   
 		.M0_ARAddr	(ARADDR_M0), 
@@ -248,6 +248,7 @@ module AXI(
 	);
 
 	Rdata	Rdata_inst(
+	    .clk(clk), .rst(rst),
 	  //M0
 		.M0_RID		(RID_M0),  
 		.M0_RData	(RDATA_M0),
@@ -286,6 +287,7 @@ module AXI(
 	);
 
 	Waddr	Waddr_inst(
+	    .clk(clk), .rst(rst),  
 	  //M0
 	  //M1
 		.M1_AWID	(AWID_M1),   
@@ -322,6 +324,7 @@ module AXI(
 	);
 
 	Wdata	Wdata_inst(
+        .clk(clk), .rst(rst),		
 	  //M0
 	  //M1
 		.M1_WData	(WDATA_M1), 
@@ -346,10 +349,11 @@ module AXI(
 		.DS_WStrb	(w_DS_WStrb ),  
 		.DS_WLast	(w_DS_WLast ),  
 		.DS_WValid	(w_DS_WValid),
-		.DS_WReady	(w_DS_WReady),
+		.DS_WReady	(w_DS_WReady)
 	);
 
 	Wresp	Wresp_inst(
+        .clk(clk), .rst(rst),		
 	  //M0
 	  //M1
 		.M1_BID		(BID_M1),
@@ -374,6 +378,7 @@ module AXI(
 	);
 
 	DefaultSlave DefaultSlave_inst(
+        .ACLK(clk), .ARESETn(rst),		
 		.DS_AWID	(w_DS_AWID),
 		.DS_AWAddr 	(w_DS_AWAddr ),
 		.DS_AWLen  	(w_DS_AWLen  ),
