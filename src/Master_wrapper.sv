@@ -13,6 +13,7 @@
         input           [`AXI_ADDR_BITS -1:0]   Memory_Addr,
         input           [`AXI_DATA_BITS -1:0]   Memory_Din,
         output  logic   [`DATA_WIDTH -1:0]      Memory_Dout,
+        output  logic                           Trans_Stall,
       //AXI Waddr
         output  logic   [`AXI_ID_BITS -1:0]     M_AWID,    
         output  logic   [`AXI_ADDR_BITS -1:0]   M_AWAddr,  
@@ -43,7 +44,7 @@
       //AXI Rdata   
         input           [`AXI_ID_BITS   -1:0]   M_RID,         
         input           [`AXI_DATA_BITS -1:0]   M_RData,   
-        input           [`AXI_STRB_BITS -1:0]   M_RResp,   
+        input           [1:0]                   M_RResp,   
         input                                   M_RLast,   
         input                                   M_RValid,  
         output  logic                           M_RReady                  
@@ -61,7 +62,12 @@
     //Data register
       logic   [`AXI_DATA_BITS -1:0]  reg_RData;
     //CNT
-      logic   [`AXI_LEN_BITS  -1:0]  cnt;      
+      logic   [`AXI_LEN_BITS  -1:0]  cnt;
+    //Start Signal
+      logic   Start_burst_write;      
+      logic   Start_burst_read;      
+    //LAST Signal 
+      logic   W_last, R_last;     
     //Done Signal 
       logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
   //----------------------- Main Code -----------------------//    
@@ -76,10 +82,10 @@
       always_comb begin
         case (S_cur)
           INITIAL:  begin
-            unique if(M_ARValid) begin
+            unique if(Start_burst_read) begin
               S_nxt   = RADDR;
             end
-            else if  (M_AWValid) begin
+            else if  (Start_burst_write) begin
               S_nxt   = WADDR;           
             end
             else begin
@@ -87,16 +93,27 @@
             end
           end
           RADDR:  S_nxt  = (Raddr_done) ? RDATA   : RADDR; 
-          RDATA:  S_nxt  = (Rdata_done) ? INITIAL : RDATA; 
+          RDATA:  S_nxt  = (R_last    ) ? INITIAL : RDATA; 
           WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
           WDATA:  S_nxt  = (Wdata_done) ? WRESP   : WDATA; 
           WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
           default:  S_nxt  = INITIAL;
         endcase
       end
+    //--------------------- Start Burst ---------------------//
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if (!ARESETn) begin
+          Start_burst_write   <=  1'b0;
+          Start_burst_read    <=  1'b0;
+        end
+        else begin
+          Start_burst_write   <=  1'b1;
+          Start_burst_read    <=  1'b1;          
+        end
+      end
     //--------------------- Last Signal ---------------------//  
       assign  W_last  = M_WLast & Wdata_done;
-      //assign  R_last  = S_RLast & Rdata_done;      
+      assign  R_last  = M_RLast & Rdata_done;      
     //--------------------- Done Signal ---------------------//
       assign  Raddr_done  = M_ARValid & M_ARReady; 
       assign  Rdata_done  = M_RValid  & M_RReady;
@@ -104,22 +121,22 @@
       assign  Wdata_done  = M_WValid  & M_WReady;
       assign  Wresp_done  = M_ARValid & M_ARReady;
     //------------------------- CNT -------------------------//
-        always_ff @(posedge ACLK or posedge ARESETn) begin
-          if (ARESETn) begin
-            cnt   <=  `AXI_LEN_BITS'd0;
-          end 
-          else begin
-            if(W_last)  begin
-              cnt   <=  `AXI_LEN_BITS'd0;            
-            end
-            else if (Wdata_done) begin
-              cnt   <=  cnt + `AXI_LEN_BITS'd1;            
-            end
-            else  begin
-              cnt   <=  cnt;
-            end
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if (!ARESETn) begin
+          cnt   <=  `AXI_LEN_BITS'd0;
+        end 
+        else begin
+          if(W_last)  begin
+            cnt   <=  `AXI_LEN_BITS'd0;            
+          end
+          else if (Wdata_done) begin
+            cnt   <=  cnt + `AXI_LEN_BITS'd1;            
+          end
+          else  begin
+            cnt   <=  cnt;
           end
         end
+      end
     //---------------------- W-channel ----------------------//
       //Addr
       assign  M_AWID      = C_ID;
@@ -145,15 +162,36 @@
     //---------------------- R-channel ----------------------//
       //Addr
       assign  M_ARID      = C_ID;
-      assign  M_ARLen     = `AXI_LEN_BITS'd0;
+      assign  M_ARLen     = C_LEN;
       assign  M_ARSize    = `AXI_SIZE_BITS'd0;
       assign  M_ARBurst   = `AXI_BURST_INC; 
-      assign  M_ARAddr    = Memory_Addr;    
+      assign  M_ARAddr    = Memory_Addr; 
+
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if (!ARESETn)
+          M_ARValid   <=  1'b0;
+        else begin
+          case (S_cur)
+            INITIAL:  M_ARValid  <= (Memory_WEB && Start_burst_read) ? 1'b1 : 1'b0;
+            RADDR:    M_ARValid  <= (Raddr_done) ? 1'b0 : 1'b1;
+            default:  M_ARValid  <=  1'b0;
+          endcase          
+        end
+      end  
       //Data
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if (!ARESETn)
+          reg_RData   <=  `DATA_WIDTH'b0;
+        else begin
+          reg_RData   <=  (Raddr_done)  ? M_RData : reg_RData;
+        end        
+      end
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
     //------------------------- CPU -------------------------//
       always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
-          else          Memory_Dout  <=  (Raddr_done)  ? M_RData : reg_RData;
+          if(!ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
+          else           Memory_Dout   <=  (Rdata_done)  ? M_RData : reg_RData;
       end
+
+      assign  Trans_Stall = ((Memory_WEB  == 1'b1) & (~Rdata_done)) |((Memory_WEB  == 1'b0) & (~Wdata_done));
 endmodule

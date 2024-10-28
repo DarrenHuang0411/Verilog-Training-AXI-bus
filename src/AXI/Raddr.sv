@@ -24,7 +24,7 @@
         input                           M1_ARValid, 
         output  logic                   M1_ARReady,
       //Slave 0 --> IM 
-        output  logic [`AXI_ID_BITS -1:0]     S0_ARID,          
+        output  logic [`AXI_IDS_BITS -1:0]    S0_ARID,          
         output  logic [`AXI_ADDR_BITS -1:0]   S0_ARAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    S0_ARLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   S0_ARSize,      
@@ -32,7 +32,7 @@
         output  logic                         S0_ARValid,    
         input                                 S0_ARReady,     
       //Slave 1 --> DM
-        output  logic [`AXI_ID_BITS -1:0]     S1_ARID,      
+        output  logic [`AXI_IDS_BITS -1:0]    S1_ARID,      
         output  logic [`AXI_ADDR_BITS -1:0]   S1_ARAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    S1_ARLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   S1_ARSize,      
@@ -40,7 +40,7 @@
         output  logic                         S1_ARValid,    
         input   logic                         S1_ARReady,
       //Default Slave
-        output  logic [`AXI_ID_BITS -1:0]     DS_ARID,      
+        output  logic [`AXI_IDS_BITS -1:0]    DS_ARID,      
         output  logic [`AXI_ADDR_BITS -1:0]   DS_ARAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    DS_ARLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   DS_ARSize,      
@@ -50,7 +50,7 @@
     );
   //----------------------- Parameter -----------------------//
     //Arbiter Output        
-        logic   [`AXI_ID_BITS -1:0]     O_IDS;  
+        logic   [`AXI_IDS_BITS -1:0]    O_IDS;  
         logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
         logic   [`AXI_LEN_BITS -1:0]    O_Len;  
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
@@ -60,6 +60,10 @@
         logic                           Dec_Arb_Ready;
 
   //----------------------- Main Code -----------------------//
+    //arrange the order & check busy
+
+
+
     Arbiter Arbiter_inst (
         .clk(clk), .rst(rst),
       //Master 0 --> IM
@@ -93,7 +97,7 @@
         assign  S0_ARAddr   =   O_Addr;  
         assign  S0_ARLen    =   O_Len;  
         assign  S0_ARSize   =   O_Size; 
-        assign  S0_ARBurst  =   O_burst;
+        assign  S0_ARBurst  =   O_Burst;
     //Slave 1 --> DM 
         assign  S1_ARID     =   O_IDS;    
         assign  S1_ARAddr   =   O_Addr;

@@ -11,7 +11,7 @@
 //------------------------- Module -------------------------//
     module top (
         input   clk,
-        input   rst
+        input   rst   //active high
     );
 
   //----------------------- Parameter -----------------------//    
@@ -84,9 +84,9 @@
         logic                          M12B_RLast;
         logic                          M12B_RValid;
         logic                          M12B_RReady;
-    //Master to Bus(B2Sx)
+    //Bus to Slave (B2Sx)
     //W channel - Addr
-        logic  [`AXI_ID_BITS -1:0]     B2S0_AWID   ; 
+        logic  [`AXI_IDS_BITS -1:0]    B2S0_AWID   ; 
         logic  [`AXI_ADDR_BITS -1:0]   B2S0_AWAddr ;
         logic  [`AXI_LEN_BITS -1:0]    B2S0_AWLen  ;
         logic  [`AXI_SIZE_BITS -1:0]   B2S0_AWSize ;
@@ -94,7 +94,7 @@
         logic                          B2S0_AWValid;
         logic                          B2S0_AWReady;
 
-        logic  [`AXI_ID_BITS -1:0]     B2S1_AWID   ;
+        logic  [`AXI_IDS_BITS -1:0]    B2S1_AWID   ;
         logic  [`AXI_ADDR_BITS -1:0]   B2S1_AWAddr ;
         logic  [`AXI_LEN_BITS -1:0]    B2S1_AWLen  ;
         logic  [`AXI_SIZE_BITS -1:0]   B2S1_AWSize ;
@@ -114,7 +114,7 @@
         logic                          B2S1_WValid;
         logic                          B2S1_WReady;
     //W channel - Response
-        logic  [`AXI_ID_BITS  -1:0]    B2S0_BID     ;
+        logic  [`AXI_IDS_BITS  -1:0]   B2S0_BID     ;
         logic  [1:0]                   B2S0_BResp   ;
         logic                          B2S0_BValid;
         logic                          B2S0_BReady;
@@ -124,7 +124,7 @@
         logic                          B2S1_BValid;
         logic                          B2S1_BReady;  
     //R channel - Addr 
-        logic  [`AXI_ID_BITS   -1:0]   B2S0_ARID    ;
+        logic  [`AXI_IDS_BITS   -1:0]  B2S0_ARID    ;
         logic  [`AXI_ADDR_BITS -1:0]   B2S0_ARAddr  ;
         logic  [`AXI_LEN_BITS  -1:0]   B2S0_ARLen   ;
         logic  [`AXI_SIZE_BITS -1:0]   B2S0_ARSize  ;
@@ -132,7 +132,7 @@
         logic                          B2S0_ARValid;
         logic                          B2S0_ARReady;
         
-        logic  [`AXI_ID_BITS   -1:0]   B2S1_ARID    ;
+        logic  [`AXI_IDS_BITS   -1:0]  B2S1_ARID    ;
         logic  [`AXI_ADDR_BITS -1:0]   B2S1_ARAddr  ;
         logic  [`AXI_LEN_BITS  -1:0]   B2S1_ARLen   ;
         logic  [`AXI_SIZE_BITS -1:0]   B2S1_ARSize  ;
@@ -140,14 +140,14 @@
         logic                          B2S1_ARValid;
         logic                          B2S1_ARReady;    
     //R channel - data
-        logic  [`AXI_ID_BITS   -1:0]   B2S0_RID     ;  
+        logic  [`AXI_IDS_BITS   -1:0]  B2S0_RID     ;  
         logic  [`AXI_DATA_BITS -1:0]   B2S0_RData   ;
         logic  [1:0]                   B2S0_RResp   ;
         logic                          B2S0_RLast   ;
         logic                          B2S0_RValid;
         logic                          B2S0_RReady;
 
-        logic  [`AXI_ID_BITS   -1:0]   B2S1_RID     ;  
+        logic  [`AXI_IDS_BITS   -1:0]  B2S1_RID     ;  
         logic  [`AXI_DATA_BITS -1:0]   B2S1_RData   ;
         logic  [1:0]                   B2S1_RResp   ;
         logic                          B2S1_RLast   ;
@@ -156,7 +156,7 @@
 
   //----------------------- Main code -----------------------//
     CPU_wrapper CPU_wrapper_inst(
-        .clk(clk), .rst(rst),
+        .ACLK(!clk), .ARESETn(!rst),
       //M2B_AW
         .M0_AWID     (M02B_AWID   ),   
         .M0_AWAddr   (M02B_AWAddr ), 
@@ -223,7 +223,7 @@
     );
 
     AXI AXI_inst(
-        .ACLK(clk), .ARESETn(rst),
+        .ACLK(!clk), .ARESETn(!rst), // active low
       //M2B_AW   
         .AWID_M1     (M12B_AWID   ),
         .AWADDR_M1   (M12B_AWAddr ),
@@ -344,7 +344,7 @@
     );
 
     SRAM_wrapper IM1(
-        .CLK(clk),  .RST(rst),
+        .ACLK(!clk),  .ARESETn(!rst),
       //B2M_AW
         .S_AWID     (B2S0_AWID   ),    
         .S_AWAddr   (B2S0_AWAddr ),  
@@ -382,7 +382,7 @@
     ); 
 
     SRAM_wrapper DM1(
-        .CLK(clk),  .RST(rst),
+        .ACLK(clk),  .ARESETn(~rst),
       //B2M_AW
         .S_AWID     (B2S1_AWID   ),    
         .S_AWAddr   (B2S1_AWAddr ),  

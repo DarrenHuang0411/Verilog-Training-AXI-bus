@@ -7,7 +7,7 @@
 //------------------------- Module -------------------------//
 
 module SRAM_wrapper (
-    input   CLK, RST,
+    input   ACLK, ARESETn,
   //AXI Waddr
     input  [`AXI_IDS_BITS -1:0]         S_AWID,    
     input  [`AXI_ADDR_BITS -1:0]        S_AWAddr,  
@@ -56,7 +56,7 @@ module SRAM_wrapper (
   //----------------------- Main Code -----------------------//  
     //Slave_wrapper
     Slave_wrapper Slave_wrapper_inst(
-      .ACLK(CLK), .ARESETn(RST),
+      .ACLK(ACLK), .ARESETn(ARESETn),
     //W channel - Addr  
       .S_AWID     (S_AWID   ),
       .S_AWAddr   (S_AWAddr ),
@@ -105,7 +105,7 @@ module SRAM_wrapper (
       .DSLP     (1'b0),
       .SD       (1'b0),
       .PUDELAY  (),
-      .CLK      (CLK),
+      .CLK      (ACLK),
       .CEB      (w_CEB),
       .WEB      (w_WEB),
       .A        (w_A),
@@ -113,7 +113,7 @@ module SRAM_wrapper (
       .BWEB     (w_BWEB),
       .RTSEL    (2'b01),
       .WTSEL    (2'b01),
-      .Q        (w_Do)
+      .Q        (w_DO)
 );
 
 

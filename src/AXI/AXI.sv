@@ -204,7 +204,7 @@ module AXI(
 
   //-------------------- Main code --------------------//	
 	Raddr	Raddr_inst(
-		.clk(clk), .rst(rst),
+		.clk(ACLK), .rst(ARESETn),
 	  //M0
 		.M0_ARID	(ARID_M0),   
 		.M0_ARAddr	(ARADDR_M0), 
@@ -248,7 +248,7 @@ module AXI(
 	);
 
 	Rdata	Rdata_inst(
-	    .clk(clk), .rst(rst),
+	    .clk(ACLK), .rst(ARESETn),
 	  //M0
 		.M0_RID		(RID_M0),  
 		.M0_RData	(RDATA_M0),
@@ -287,7 +287,7 @@ module AXI(
 	);
 
 	Waddr	Waddr_inst(
-	    .clk(clk), .rst(rst),  
+	    .clk(ACLK), .rst(ARESETn),  
 	  //M0
 	  //M1
 		.M1_AWID	(AWID_M1),   

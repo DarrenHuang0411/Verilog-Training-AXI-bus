@@ -69,8 +69,8 @@
   //----------------------- Main Code -----------------------//
     //------------------------- FSM -------------------------//
       always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(!ARESETn)  S_cur <=  SADDR;
-          else        S_cur <=  S_nxt;
+          if(!ARESETn)   S_cur <=  SADDR;
+          else          S_cur <=  S_nxt;
       end
 
       always_comb begin
@@ -108,7 +108,7 @@
       assign  Wresp_done  = S_BValid  & S_BReady;
     //------------------------- CNT -------------------------//
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if (ARESETn) begin
+          if (!ARESETn) begin
             cnt   <=  `AXI_LEN_BITS'd0;
           end 
           else begin
@@ -126,17 +126,17 @@
     //----------------- W-channel (priority) -----------------//
       //Addr
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_AWID     <=  `MEM_ADDR_LEN'd0;
+          if(!ARESETn)   reg_AWID     <=  `MEM_ADDR_LEN'd0;
           else      reg_AWID     <=  (Waddr_done)  ? S_AWID : reg_AWID;
         end   
 
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
+          if(!ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
           else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[15:2] : reg_AWAddr;
         end   
         
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_AWLen   <=  `AXI_LEN_BITS'd0;
+          if(!ARESETn)   reg_AWLen   <=  `AXI_LEN_BITS'd0;
           else      reg_AWLen   <=  (Waddr_done)  ? S_AWLen : reg_AWLen;
         end
         //awsize
@@ -160,28 +160,31 @@
     //---------------------- R-channel ----------------------// 
       //Addr
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_ARID   <=  `AXI_LEN_BITS'd0;
-          else      reg_ARID   <=  (Raddr_done)  ? S_ARID : reg_ARID;
-        end
-
-        always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_ARAddr   <=  `MEM_ADDR_LEN'd0;
-          else      reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
-        end
-          
-        always_ff @(posedge ACLK or posedge ARESETn) begin
-          if(ARESETn)   reg_ARLen   <=  `AXI_LEN_BITS'd0;
-          else      reg_ARLen   <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
+          if(!ARESETn) begin
+            reg_ARID      <=  `AXI_IDS_BITS'd0;
+            reg_ARAddr    <=  `MEM_ADDR_LEN'd0;
+            reg_ARLen     <=  `AXI_LEN_BITS'd0;
+          end          
+          else  begin
+            reg_ARID     <=  (Raddr_done)  ? S_ARID : reg_ARID;
+            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
+            reg_ARLen    <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
+          end      
         end
         //Rsize
         //Rburst
-        always_comb begin
-          case (S_cur)
-            SADDR:      S_ARReady   =   ~S_AWValid;
-            WRESP:      S_ARReady   =   1'b0;  
-            default:    S_ARReady   =   1'b0;
-          endcase
-        end
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn) begin
+            S_ARReady    <=   1'b0;
+          end          
+          else  begin
+            case (S_cur)
+              SADDR:      S_ARReady   <= (Raddr_done) ? 1'b0 : 1'b1;
+              WRESP:      S_ARReady   <=   1'b0;  
+              default:    S_ARReady   <=   1'b0;
+            endcase
+          end      
+        end        
       //data
         assign  S_RID     = reg_ARID;
         //Data problem (need to solve)
@@ -193,8 +196,11 @@
     //----------------------- Memory -----------------------//   
         always_comb begin
           if (S_cur == SADDR) begin
-              CEB   =   S_AWValid | S_ARValid;            
+              CEB   =   S_ARValid;// | S_AWValid;            
           end 
+          else if(S_cur == RDATA) begin
+              CEB   =   1'b1;                 
+          end
           else begin
               CEB   =   1'b0;  
           end

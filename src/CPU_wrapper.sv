@@ -6,7 +6,7 @@
     `include "Master_wrapper.sv"
 //------------------------- Module -------------------------//
     module CPU_wrapper (
-        input   clk, rst,
+        input   ACLK, ARESETn,
       //W channel - Addr
         //M0
         output  logic  [`AXI_ID_BITS -1:0]     M0_AWID,    
@@ -86,36 +86,44 @@
     //CPU-Master1(IM)
       logic     w_IM_WEB;
       logic     [`AXI_DATA_BITS -1:0] w_IM_addr;
-      logic     w_IM_IF_instr;
+      logic     [`AXI_DATA_BITS -1:0] w_IM_IF_instr;
+      logic     w_IM_Trans_Stall;
     //CPU-Master2(DM)    
       logic     w_DM_WEB;
       logic     [`DATA_WIDTH    -1:0] w_DM_BWEB;
       logic     [`AXI_DATA_BITS -1:0] w_DM_addr;
       logic     [`AXI_DATA_BITS -1:0] w_DM_Din;
       logic     [`AXI_DATA_BITS -1:0] w_DM_Dout;
+      logic     w_DM_Trans_Stall;      
   //----------------------- Main code -----------------------//
     CPU CPU_inst(
-        .clk(clk), .rst(rst),
+        .clk(!ACLK), .rst(!ARESETn),
         
-        .IM_WEB     (w_IM_WEB),
-        .IM_addr    (w_IM_addr),
-        .IM_IF_instr(w_IM_IF_instr),
+        .IM_WEB         (w_IM_WEB),
+        .IM_addr        (w_IM_addr),
+        .IM_IF_instr    (w_IM_IF_instr),
+        .IM_Trans_Stall (w_IM_Trans_Stall),
         
-        .DM_WEB     (w_DM_WEB),
-        .DM_BWEB    (w_DM_BWEB),
-        .DM_addr    (w_DM_addr),
-        .DM_Din     (w_DM_Din),
-        .DM_Dout    (w_DM_Dout)
+        .DM_WEB         (w_DM_WEB),
+        .DM_BWEB        (w_DM_BWEB),
+        .DM_addr        (w_DM_addr),
+        .DM_Din         (w_DM_Din),
+        .DM_Dout        (w_DM_Dout),
+        .DM_Trans_Stall (w_DM_Trans_Stall)
     );
 
-    Master_wrapper Master_wrapper_IM_inst(
+    Master_wrapper #(
+      .C_ID   (4'b0001),
+      .C_LEN  (`AXI_LEN_BITS'd1)
+    ) Master_wrapper_IM_inst (
+        .ACLK(ACLK), .ARESETn(ARESETn),
       //CPU-Master
-        .ACLK(clk), .ARESETn(rst),
         .Memory_WEB   (w_IM_WEB), 
         .Memory_BWEB  (32'hffff_ffff),
         .Memory_Addr  (w_IM_addr),
         .Memory_Din   (`AXI_DATA_BITS'b0),
         .Memory_Dout  (w_IM_IF_instr),
+        .Trans_Stall  (w_IM_Trans_Stall),
       //Master
         .M_AWID       (M0_AWID   ),  
         .M_AWAddr     (M0_AWAddr ),
@@ -150,13 +158,18 @@
 
     );
 
-    Master_wrapper Master_wrapper_DM_inst(
-        .ACLK(clk), .ARESETn(rst),
+    Master_wrapper #(
+      .C_ID   (4'b0010),
+      .C_LEN  (`AXI_LEN_BITS'd1)
+    ) Master_wrapper_DM_inst(
+        .ACLK(ACLK), .ARESETn(ARESETn),
+      //CPU-Master
         .Memory_WEB   (w_DM_WEB  ), 
         .Memory_BWEB  (w_DM_BWEB ),
         .Memory_Addr  (w_DM_addr ),
         .Memory_Din   (w_DM_Din  ),
         .Memory_Dout  (w_DM_Dout ),
+        .Trans_Stall  (w_DM_Trans_Stall),
 
         .M_AWID       (M1_AWID   ),  
         .M_AWAddr     (M1_AWAddr ),

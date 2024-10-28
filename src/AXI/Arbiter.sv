@@ -33,25 +33,67 @@
     );
   //----------------------- Parameter -----------------------//
     //FSM
-      parameter [1:0] idle    =   2'd0,
+      logic   [1:0]   Master_sel, Master_sel_nxt;
+      logic   [1:0]   Round_Robin_CNT; 
+      parameter [1:0] IDLE    =   2'd0,
                       I0      =   2'd1,
                       I1      =   2'd2;
     //Internal Connect
-      logic   [1:0]   Master_sel;
-  //------------------------- FSM -------------------------//
-    always_comb begin
-      unique if(I0_Valid)
-        Master_sel  =   2'd1; 
-      else if(I1_Valid)
-        Master_sel  =   2'd2;       
+  //------------------- FSM (Round Robin) --------------------//
+    always_ff @(posedge clk or posedge rst) begin
+      if(!rst) 
+        Master_sel  <=  IDLE;
       else
-        Master_sel  =   2'd0;        
+        Master_sel  <=  Master_sel_nxt;          
     end
+
+    always_comb begin
+      case (Master_sel)
+        IDLE: begin
+          if(I0_Valid && I1_Valid)
+            Master_sel_nxt  = I0;
+          else if(I0_Valid)
+            Master_sel_nxt  = I0;            
+          else if(I1_Valid)
+            Master_sel_nxt  = I1;  
+          else begin
+            Master_sel_nxt  = IDLE;
+          end
+        end 
+        I0: begin
+          if(Round_Robin_CNT == 2'd2)
+            Master_sel_nxt  = IDLE;
+          else if (IB0_Ready)
+            Master_sel_nxt  = I1;  
+          else
+            Master_sel_nxt  = I0;          
+        end
+        I1: begin
+          if(Round_Robin_CNT == 2'd2)
+            Master_sel_nxt  = IDLE;
+          else if (IB1_Ready)
+            Master_sel_nxt  = I0;              
+          else
+            Master_sel_nxt  = I1;              
+        end
+        default:  Master_sel_nxt  = IDLE;
+      endcase
+    end
+
+  //------------------- CNT (Round Robin) --------------------//
+    always_ff @(posedge clk or posedge rst) begin
+      if(!rst) 
+        Round_Robin_CNT   <=  2'd0;
+      else if (Master_sel == IDLE)
+        Round_Robin_CNT   <=  2'd0;
+      else
+        Round_Robin_CNT   <=  Round_Robin_CNT + 1;                 
+    end 
     
     always_comb begin
         case (Master_sel)
             I0: begin
-                O_IDS       =   {4'b0000, I0_ID};   
+                O_IDS       =   {4'b0001, I0_ID};   
                 O_Addr      =   I0_Addr;
                 O_Len       =   I0_Len;
                 O_Size      =   I0_Size;
@@ -61,7 +103,7 @@
                 IB1_Ready   =   1'b0;    
             end
             I1: begin
-                O_IDS       =   {4'b0001, I1_ID};
+                O_IDS       =   {4'b0010, I1_ID};
                 O_Addr      =   I1_Addr;
                 O_Len       =   I1_Len;
                 O_Size      =   I1_Size;

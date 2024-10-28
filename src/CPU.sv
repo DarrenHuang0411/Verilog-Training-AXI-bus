@@ -18,12 +18,14 @@ module CPU (
     output logic    IM_WEB,
     output logic    [`AXI_DATA_BITS -1:0] IM_addr,
     input           [`DATA_WIDTH -1:0]    IM_IF_instr,
+    input           IM_Trans_Stall,
   //DM  
     output logic    DM_WEB,
     output logic    [`DATA_WIDTH -1:0] DM_BWEB,
     output logic    [`AXI_ADDR_BITS -1:0] DM_addr,
     output logic    [`AXI_DATA_BITS -1:0] DM_Din,
-    input           [`AXI_DATA_BITS -1:0] DM_Dout
+    input           [`AXI_DATA_BITS -1:0] DM_Dout,
+    input           DM_Trans_Stall
 );
 
 //------------------- parameter -------------------//    
@@ -36,6 +38,9 @@ module CPU (
     wire                        HAZ_IF_pc_w;
     wire                        HAZ_IF_instr_flush;
     wire                        wire_HAZ_IF_ID_reg_write;
+    wire                        wire_HAZ_ID_EXE_reg_write;
+    wire                        wire_HAZ_EXE_MEM_reg_write;  
+    wire                        wire_HAZ_MEM_WB_reg_write;      
     wire                        wire_ctrl_sig_flush;
     wire                        wire_HAZ_CSR_lw_use;
 
@@ -179,8 +184,9 @@ module CPU (
     );
 
 
-    assign  IM_web    =   1'b1; // read mode
-    
+    assign  IM_WEB    =   1'b1; // read mode
+    assign  IM_addr   =   {18'd0, IF_IM_pc[15:2]};
+
     // SRAM_wrapper IM1(
     //     .CLK(~clk), .RST(rst),
     //     .CEB(1'b0),
@@ -375,10 +381,15 @@ module CPU (
         .ID_rs1_addr        (wire_ID_EXE_rs1_addr),
         .ID_rs2_addr        (wire_ID_EXE_rs2_addr),
         .EXE_rd_addr        (wire_EXE_MEM_rd_addr),
-
+        
+        .IM_Trans_Stall     (IM_Trans_Stall),
+        .DM_Trans_Stall     (DM_Trans_Stall),
         .pc_write           (HAZ_IF_pc_w),  
         .instr_flush        (HAZ_IF_instr_flush),
         .IF_ID_reg_write    (wire_HAZ_IF_ID_reg_write),
+        .ID_EXE_reg_write   (wire_HAZ_ID_EXE_reg_write),
+        .EXE_MEM_reg_write  (wire_HAZ_EXE_MEM_reg_write),
+        .MEM_WB_reg_write   (wire_HAZ_MEM_WB_reg_write),
         .ctrl_sig_flush     (wire_ctrl_sig_flush),
         .lw_use             (wire_HAZ_CSR_lw_use)
     );
@@ -454,7 +465,14 @@ module CPU (
             ID_EXE_reg_file_write   <=  0;
             ID_EXE_reg_file_FP_write<=  0;
         end 
-        else begin
+        else if (wire_ctrl_sig_flush) begin
+            ID_EXE_branch_signal        <=  1'b0 ;   
+            ID_EXE_DM_read              <=  1'b0 ;
+            ID_EXE_DM_write             <=  1'b0 ; 
+            ID_EXE_reg_file_write       <=  1'b0 ;   
+            ID_EXE_reg_file_FP_write    <=  1'b0 ;                                   
+        end
+        else if (wire_HAZ_ID_EXE_reg_write)begin
             ID_EXE_pc_in            <= wire_ID_EXE_pc_in;
             ID_EXE_rs1              <= wire_ID_EXE_rs1;
             ID_EXE_rs2              <= wire_ID_EXE_rs2;
@@ -470,14 +488,14 @@ module CPU (
             ID_EXE_ALU_Ctrl_op      <= wire_ID_EXE_ALU_Ctrl_op  ;
             ID_EXE_pc_mux           <= wire_ID_EXE_pc_mux       ;
             ID_EXE_ALU_rs2_sel      <= wire_ID_EXE_ALU_rs2_sel  ;
-            ID_EXE_branch_signal    <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_branch_signal;
+            ID_EXE_branch_signal    <= wire_ID_EXE_branch_signal;
             ID_EXE_rd_sel           <= wire_ID_EXE_rd_sel       ;
             ID_EXE_Din_sel          <= wire_ID_EXE_Din_sel       ;
-            ID_EXE_DM_read          <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_DM_read;
-            ID_EXE_DM_write         <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_DM_write;   
+            ID_EXE_DM_read          <= wire_ID_EXE_DM_read;
+            ID_EXE_DM_write         <= wire_ID_EXE_DM_write;   
             ID_EXE_WB_data_sel      <= wire_ID_EXE_WB_data_sel  ;
-            ID_EXE_reg_file_write   <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_reg_file_write;   
-            ID_EXE_reg_file_FP_write<= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_reg_file_FP_write;  
+            ID_EXE_reg_file_write   <= wire_ID_EXE_reg_file_write;   
+            ID_EXE_reg_file_FP_write<= wire_ID_EXE_reg_file_FP_write;  
         end
     end
 
@@ -500,7 +518,7 @@ module CPU (
             EXE_MEM_reg_file_write    <=    0;
             EXE_MEM_reg_file_FP_write <=    0;                            
         end 
-        else begin
+        else if(wire_HAZ_EXE_MEM_reg_write)begin
             EXE_MEM_PC                <=    wire_EXE_MEM_PC         ;                 
             EXE_MEM_ALU_o             <=    wire_EXE_MEM_ALU_o      ; 
             EXE_MEM_ALU_FP_o          <=    wire_EXE_MEM_ALU_FP_o   ;                                               
@@ -530,7 +548,7 @@ module CPU (
             MEM_WB_reg_file_write     <=   0;
             MEM_WB_reg_file_FP_write  <=   0;
         end 
-        else begin
+        else if (wire_HAZ_MEM_WB_reg_write) begin
             MEM_WB_rd_dir             <=   wire_MEM_WB_rd_dir;      
             MEM_WB_rd_DM              <=   wire_MEM_WB_rd_DM;       
             MEM_WB_rd_addr            <=   wire_MEM_WB_rd_addr;
