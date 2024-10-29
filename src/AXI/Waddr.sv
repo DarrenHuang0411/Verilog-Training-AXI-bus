@@ -17,7 +17,7 @@
         input                           M1_AWValid, 
         output  logic                   M1_AWReady,
       //Slave 0 --> IM 
-        output  logic [`AXI_ID_BITS -1:0]     S0_AWID,          
+        output  logic [`AXI_IDS_BITS -1:0]    S0_AWID,          
         output  logic [`AXI_ADDR_BITS -1:0]   S0_AWAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    S0_AWLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   S0_AWSize,      
@@ -25,7 +25,7 @@
         output  logic                         S0_AWValid,    
         input                                 S0_AWReady,     
       //Slave 1 --> DM
-        output  logic [`AXI_ID_BITS -1:0]     S1_AWID,      
+        output  logic [`AXI_IDS_BITS -1:0]    S1_AWID,      
         output  logic [`AXI_ADDR_BITS -1:0]   S1_AWAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    S1_AWLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   S1_AWSize,      
@@ -33,7 +33,7 @@
         output  logic                         S1_AWValid,    
         input   logic                         S1_AWReady,
       //Default Slave
-        output  logic [`AXI_ID_BITS -1:0]     DS_AWID,      
+        output  logic [`AXI_IDS_BITS -1:0]    DS_AWID,      
         output  logic [`AXI_ADDR_BITS -1:0]   DS_AWAddr,      
         output  logic [`AXI_LEN_BITS -1:0]    DS_AWLen,        
         output  logic [`AXI_SIZE_BITS -1:0]   DS_AWSize,      
@@ -45,7 +45,7 @@
     //M0 (not use --> prevent logic)
         logic                           M0_AWReady; 
     //Arbiter Output        
-        logic   [`AXI_ID_BITS -1:0]     O_IDS;  
+        logic   [`AXI_IDS_BITS -1:0]    O_IDS;  
         logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
         logic   [`AXI_LEN_BITS -1:0]    O_Len;  
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
@@ -106,8 +106,8 @@
         .clk(clk), .rst(rst),
       //from Arbiter    
         .I_Addr     (O_Addr),
-        .I_Valid    (Arib_Dec_Valid),
-        .IB_Ready   (Dec_Arib_Ready),
+        .I_Valid    (Arb_Dec_Valid),
+        .IB_Ready   (Dec_Arb_Ready),
       //Slave 0 --> IM 
         .O0_Valid   (S0_AWValid),
         .OB0_Ready  (S0_AWReady),

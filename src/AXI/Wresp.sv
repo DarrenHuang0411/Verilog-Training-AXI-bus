@@ -34,12 +34,12 @@
     logic                           O_Valid;
     logic                           O_Ready;
 
-    logic       Slave_sel;             
-    parameter [1:0] S0  =   3'b001,
+    logic     [2:0] Slave_sel;             
+    parameter [2:0] S0  =   3'b001,
                     S1  =   3'b010,
                     DS  =   3'b100;  
     logic       Master_sel;
-    parameter [1:0] M0 = 4'b0001,
+    parameter [3:0] M0 = 4'b0001,
                     M1 = 4'b0010;  
 
   //----------------------- Main Code -----------------------//      
@@ -60,28 +60,36 @@
             Master_sel    = S0_BID[7:4];
             O_ID          = S0_BID[3:0];  
             O_Resp        = S0_BResp;
-            O_Valid       = S0_BValid;
-            S0_BReady     = O_Ready;         
+            O_Valid       = S0_BValid;            
+            S0_BReady     = O_Ready;  
+            S1_BReady     = 1'b0;
+            DS_BReady     = 1'b0;                                    
           end
           S1: begin
             Master_sel    = S1_BID[7:4];
             O_ID          = S1_BID[3:0];  
             O_Resp        = S1_BResp; 
-            O_Valid       = S1_BValid;                          
-            S1_BReady     = O_Ready;            
+            O_Valid       = S1_BValid;  
+            S0_BReady     = 1'b0;                                     
+            S1_BReady     = O_Ready;
+            DS_BReady     = 1'b0;                         
           end
           DS: begin
             Master_sel    = DS_BID[7:4];
             O_ID          = DS_BID[3:0];  
             O_Resp        = DS_BResp; 
-            O_Valid       = DS_BValid;                          
+            O_Valid       = DS_BValid;
+            S0_BReady     = 1'b0;
+            S1_BReady     = 1'b0;                                                      
             DS_BReady     = O_Ready;            
           end
           default: begin
             Master_sel    = `AXI_ID_BITS'd0;
             O_ID          = `AXI_ID_BITS'd0;  
             O_Resp        = 2'd0;   
-            O_Valid       = 1'd0;                         
+            O_Valid       = 1'd0;
+            S0_BReady     = 1'b0;
+            S1_BReady     = 1'b0;                                         
             DS_BReady     = 1'd0;
           end
         endcase

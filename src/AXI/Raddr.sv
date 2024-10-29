@@ -60,10 +60,6 @@
         logic                           Dec_Arb_Ready;
 
   //----------------------- Main Code -----------------------//
-    //arrange the order & check busy
-
-
-
     Arbiter Arbiter_inst (
         .clk(clk), .rst(rst),
       //Master 0 --> IM

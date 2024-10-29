@@ -59,7 +59,7 @@
   //----------------------- Main Code -----------------------//
     //---------------------    FSM    ---------------------//
         always_ff @(posedge ACLK or posedge ARESETn) begin
-            if (ARESETn)   S_cur <=  SADDR;
+            if (!ARESETn)   S_cur <=  SADDR;
             else       S_cur <=  S_nxt;
         end
         
@@ -114,13 +114,13 @@
       //Addr
         //ARID not need to store
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if (ARESETn)  reg_ARLen <=  `AXI_LEN_BITS'd0;
+          if (!ARESETn)  reg_ARLen <=  `AXI_LEN_BITS'd0;
           else          reg_ARLen <=  (Raddr_done)  ? DS_ARLen  : reg_ARLen;
         end
         assign  DS_ARReady =  (DS_ARValid)  ? 1'b1  : 1'b0;       
       //Data
         always_ff @(posedge ACLK or posedge ARESETn) begin
-          if (ARESETn)  DS_RID    <=  `AXI_IDS_BITS'd0;
+          if (!ARESETn)  DS_RID    <=  `AXI_IDS_BITS'd0;
           else          DS_RID    <=  (Raddr_done)  ? DS_ARID  : DS_RID;          
         end
         assign  DS_RData  = `AXI_DATA_BITS'd0;

@@ -156,7 +156,7 @@
 
   //----------------------- Main code -----------------------//
     CPU_wrapper CPU_wrapper_inst(
-        .ACLK(!clk), .ARESETn(!rst),
+        .ACLK(clk), .ARESETn(!rst),
       //M2B_AW
         .M0_AWID     (M02B_AWID   ),   
         .M0_AWAddr   (M02B_AWAddr ), 
@@ -223,7 +223,7 @@
     );
 
     AXI AXI_inst(
-        .ACLK(!clk), .ARESETn(!rst), // active low
+        .ACLK(clk), .ARESETn(!rst), // active low
       //M2B_AW   
         .AWID_M1     (M12B_AWID   ),
         .AWADDR_M1   (M12B_AWAddr ),
@@ -344,7 +344,7 @@
     );
 
     SRAM_wrapper IM1(
-        .ACLK(!clk),  .ARESETn(!rst),
+        .ACLK(clk),  .ARESETn(!rst),
       //B2M_AW
         .S_AWID     (B2S0_AWID   ),    
         .S_AWAddr   (B2S0_AWAddr ),  
@@ -382,7 +382,7 @@
     ); 
 
     SRAM_wrapper DM1(
-        .ACLK(clk),  .ARESETn(~rst),
+        .ACLK(clk),  .ARESETn(!rst),
       //B2M_AW
         .S_AWID     (B2S1_AWID   ),    
         .S_AWAddr   (B2S1_AWAddr ),  

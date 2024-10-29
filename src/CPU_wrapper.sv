@@ -90,14 +90,24 @@
       logic     w_IM_Trans_Stall;
     //CPU-Master2(DM)    
       logic     w_DM_WEB;
+      logic     w_DM_read_sel;
+      logic     w_DM_write_sel;
       logic     [`DATA_WIDTH    -1:0] w_DM_BWEB;
       logic     [`AXI_DATA_BITS -1:0] w_DM_addr;
       logic     [`AXI_DATA_BITS -1:0] w_DM_Din;
       logic     [`AXI_DATA_BITS -1:0] w_DM_Dout;
-      logic     w_DM_Trans_Stall;      
+      logic     w_DM_Trans_Stall;
+    //Adjust rst for wrapper & AXI 
+      logic     adj_ARESETn;
+      always_ff @(posedge ACLK) begin
+        if(!ARESETn)
+          adj_ARESETn <=  1'b0;
+        else
+          adj_ARESETn <=  1'b1;
+      end      
   //----------------------- Main code -----------------------//
     CPU CPU_inst(
-        .clk(!ACLK), .rst(!ARESETn),
+        .clk(ACLK), .rst(!adj_ARESETn),
         
         .IM_WEB         (w_IM_WEB),
         .IM_addr        (w_IM_addr),
@@ -105,6 +115,8 @@
         .IM_Trans_Stall (w_IM_Trans_Stall),
         
         .DM_WEB         (w_DM_WEB),
+        .DM_read_sel    (w_DM_read_sel),
+        .DM_write_sel   (w_DM_write_sel),
         .DM_BWEB        (w_DM_BWEB),
         .DM_addr        (w_DM_addr),
         .DM_Din         (w_DM_Din),
@@ -114,11 +126,13 @@
 
     Master_wrapper #(
       .C_ID   (4'b0001),
-      .C_LEN  (`AXI_LEN_BITS'd1)
+      .C_LEN  (`AXI_LEN_BITS'd0)
     ) Master_wrapper_IM_inst (
-        .ACLK(ACLK), .ARESETn(ARESETn),
+        .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_IM_WEB), 
+        .Memory_DM_read_sel    (1'b1),
+        .Memory_DM_write_sel   (1'b0),        
         .Memory_BWEB  (32'hffff_ffff),
         .Memory_Addr  (w_IM_addr),
         .Memory_Din   (`AXI_DATA_BITS'b0),
@@ -139,7 +153,10 @@
         .M_WValid     (M0_WValid ),
         .M_WReady     (M0_wReady ),
       //B
-
+        .M_BID        (M0_BID   ), 
+        .M_BResp      (M0_BResp ),
+        .M_BValid     (M0_BValid),
+        .M_BReady     (M0_BReady),
       //AR
         .M_ARID       (M0_ARID   ),  
         .M_ARAddr     (M0_ARAddr ),
@@ -160,11 +177,13 @@
 
     Master_wrapper #(
       .C_ID   (4'b0010),
-      .C_LEN  (`AXI_LEN_BITS'd1)
+      .C_LEN  (`AXI_LEN_BITS'd0)
     ) Master_wrapper_DM_inst(
-        .ACLK(ACLK), .ARESETn(ARESETn),
+        .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_DM_WEB  ), 
+        .Memory_DM_read_sel    (w_DM_read_sel),
+        .Memory_DM_write_sel   (w_DM_write_sel),          
         .Memory_BWEB  (w_DM_BWEB ),
         .Memory_Addr  (w_DM_addr ),
         .Memory_Din   (w_DM_Din  ),
@@ -183,9 +202,13 @@
         .M_WStrb      (M1_WStrb  ), 
         .M_WLast      (M1_WLast  ), 
         .M_WValid     (M1_WValid ),
-        .M_WReady     (M1_wReady ),
+        .M_WReady     (M1_WReady ),
 
       //B
+        .M_BID        (M1_BID   ), 
+        .M_BResp      (M1_BResp ),
+        .M_BValid     (M1_BValid),
+        .M_BReady     (M1_BReady),
 
         .M_ARID       (M1_ARID   ),  
         .M_ARAddr     (M1_ARAddr ),

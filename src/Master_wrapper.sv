@@ -9,6 +9,8 @@
         input       ACLK, ARESETn,
       //CPU Memory Port 
         input           Memory_WEB, 
+        input           Memory_DM_read_sel, 
+        input           Memory_DM_write_sel, 
         input           [`DATA_WIDTH -1:0]      Memory_BWEB, // transfer to strb
         input           [`AXI_ADDR_BITS -1:0]   Memory_Addr,
         input           [`AXI_DATA_BITS -1:0]   Memory_Din,
@@ -82,7 +84,7 @@
       always_comb begin
         case (S_cur)
           INITIAL:  begin
-            unique if(Start_burst_read) begin
+            if(Start_burst_read) begin
               S_nxt   = RADDR;
             end
             else if  (Start_burst_write) begin
@@ -95,7 +97,7 @@
           RADDR:  S_nxt  = (Raddr_done) ? RDATA   : RADDR; 
           RDATA:  S_nxt  = (R_last    ) ? INITIAL : RDATA; 
           WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
-          WDATA:  S_nxt  = (Wdata_done) ? WRESP   : WDATA; 
+          WDATA:  S_nxt  = (W_last)     ? WRESP   : WDATA; 
           WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
           default:  S_nxt  = INITIAL;
         endcase
@@ -107,8 +109,25 @@
           Start_burst_read    <=  1'b0;
         end
         else begin
-          Start_burst_write   <=  1'b1;
-          Start_burst_read    <=  1'b1;          
+          case (S_cur)
+            INITIAL:  begin
+              Start_burst_write   <=  (~Memory_WEB) & Memory_DM_write_sel;
+              Start_burst_read    <=   Memory_WEB & Memory_DM_read_sel;                
+            end
+            RADDR:  begin
+              Start_burst_write   <=  1'b0;
+              Start_burst_read    <=  1'b1;                
+            end
+            WADDR:  begin
+              Start_burst_write   <=  1'b1;
+              Start_burst_read    <=  1'b0;                
+            end
+            default: begin
+              Start_burst_write   <=  1'b0;
+              Start_burst_read    <=  1'b0;                 
+            end
+          endcase
+      
         end
       end
     //--------------------- Last Signal ---------------------//  
@@ -145,20 +164,24 @@
       assign  M_AWBurst   = `AXI_BURST_INC; 
       assign  M_AWAddr    = Memory_Addr;
       
-      always_comb begin
-        case (S_cur)
-          INITIAL:  M_AWValid = (!Memory_WEB) ? 1'b1 : 1'b0;
-          WADDR:    M_AWValid = 1'b1;
-          default:  M_AWValid = 1'b0;
-        endcase     
-      end
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if (!ARESETn)
+          M_AWValid   <=  1'b0;
+        else begin
+          case (S_cur)
+            INITIAL:  M_AWValid  <= (!Memory_WEB && Start_burst_write) ? 1'b1 : 1'b0;
+            WADDR:    M_AWValid  <= (Waddr_done) ? 1'b0 : 1'b1;
+            default:  M_AWValid  <=  1'b0;
+          endcase          
+        end
+      end  
       //Data
       assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
-      assign  M_WLast   =   (cnt == M_AWLen)  ? 1'b1  : 1'b0; 
+      assign  M_WLast   =   ((S_cur == WDATA) && (cnt == M_AWLen))  ? 1'b1  : 1'b0; 
       assign  M_WData   =   Memory_Din;
       assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
       //Response
-      assign  M_BReady  =   (S_cur == WRESP | Wdata_done)? 1'b1 : 1'b0;
+      assign  M_BReady  =   (S_cur == WRESP || S_cur == WDATA)? 1'b1 : 1'b0;
     //---------------------- R-channel ----------------------//
       //Addr
       assign  M_ARID      = C_ID;
@@ -183,7 +206,7 @@
         if (!ARESETn)
           reg_RData   <=  `DATA_WIDTH'b0;
         else begin
-          reg_RData   <=  (Raddr_done)  ? M_RData : reg_RData;
+          reg_RData   <=  (Rdata_done)  ? M_RData : reg_RData;
         end        
       end
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
@@ -192,6 +215,24 @@
           if(!ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
           else           Memory_Dout   <=  (Rdata_done)  ? M_RData : reg_RData;
       end
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+        if(!ARESETn)  begin
+          Trans_Stall <=  1'b0;
+        end   
+        else begin
+        case (S_cur)
+          INITIAL:  Trans_Stall <=   ((~Memory_WEB) & Memory_DM_write_sel)|(Memory_WEB & Memory_DM_read_sel);
+          RADDR:    Trans_Stall <=  1'b1;
+          RDATA:    Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
+          WADDR:    Trans_Stall <=  1'b1;
+          WDATA:    Trans_Stall <=  1'b1;
+          WRESP:    Trans_Stall <=  (W_last) ? 1'b0 : 1'b1;
+          default:  Trans_Stall <=  1'b0;
+        endcase          
+        end
+      end
+      always_comb begin
 
-      assign  Trans_Stall = ((Memory_WEB  == 1'b1) & (~Rdata_done)) |((Memory_WEB  == 1'b0) & (~Wdata_done));
+      end
+      //assign  Trans_Stall = ((Memory_WEB  == 1'b1) & (~Rdata_done)) |((Memory_WEB  == 1'b0) & (~Wdata_done));
 endmodule

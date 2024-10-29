@@ -24,13 +24,13 @@
 
     always_comb begin
         case (I_Addr[31:16])
-            `SLAVE1_BASE_ADDR:   begin
+            16'h0000:   begin
                 IB_Ready        =   (I_Valid) ? OB0_Ready : 1'b1;
                 O0_Valid        =   I_Valid;
                 O1_Valid        =   1'b0;
                 ODefault_Valid  =   1'b0;
             end
-            `SLAVE2_BASE_ADDR:   begin
+            16'h0001:   begin
                 IB_Ready        =   (I_Valid) ? OB1_Ready : 1'b1;
                 O0_Valid        =   1'b0;
                 O1_Valid        =   I_Valid;

@@ -76,11 +76,7 @@
       always_comb begin
         case (S_cur)
           SADDR:  begin
-            // unique if (Waddr_done && Wdata_done) begin
-            //   S_nxt = WRESP;
-            // end 
-            // else 
-            unique if (Waddr_done) begin
+            if (Waddr_done) begin
               S_nxt = WDATA;
             end
             else if (Raddr_done) begin
@@ -132,7 +128,7 @@
 
         always_ff @(posedge ACLK or posedge ARESETn) begin
           if(!ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
-          else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[15:2] : reg_AWAddr;
+          else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[13:0] : reg_AWAddr;
         end   
         
         always_ff @(posedge ACLK or posedge ARESETn) begin
@@ -141,13 +137,18 @@
         end
         //awsize
         //awburst
-        always_comb begin
-          case (S_cur)
-            SADDR:      S_AWReady   =   1'b1;
-            WRESP:      S_AWReady   =   Wdata_done;  
-            default:    S_AWReady   =   1'b0;
-          endcase
-        end
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn) begin
+            S_AWReady    <=   1'b0;
+          end          
+          else  begin
+            case (S_cur)
+              SADDR:      S_AWReady   <= (Waddr_done) ? 1'b0 : 1'b1;
+              WRESP:      S_AWReady   <=   1'b0;  
+              default:    S_AWReady   <=   1'b0;
+            endcase
+          end      
+        end    
       //Data
         //Wdata(MEM)
         //Wstrb(MEM)
@@ -167,7 +168,7 @@
           end          
           else  begin
             reg_ARID     <=  (Raddr_done)  ? S_ARID : reg_ARID;
-            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
+            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[13:0] : reg_ARAddr;
             reg_ARLen    <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
           end      
         end
@@ -196,9 +197,9 @@
     //----------------------- Memory -----------------------//   
         always_comb begin
           if (S_cur == SADDR) begin
-              CEB   =   S_ARValid;// | S_AWValid;            
+              CEB   =   S_ARValid | S_AWValid;            
           end 
-          else if(S_cur == RDATA) begin
+          else if(S_cur == RDATA || S_cur == WDATA) begin
               CEB   =   1'b1;                 
           end
           else begin
@@ -210,7 +211,7 @@
           case (S_cur)
             SADDR:    WEB   = 1'b0;
             RDATA:    WEB   = 1'b1;
-            WDATA:    WEB   = 1'b1;
+            WDATA:    WEB   = 1'b0;
             default:  WEB   = 1'b0;
           endcase
         end
@@ -219,7 +220,7 @@
           
         always_comb begin
           case (S_cur)
-            SADDR:  A = (Waddr_done)  ? S_AWAddr[15:2]  :  S_ARAddr[15:2];
+            SADDR:  A = (Waddr_done)  ? S_AWAddr[13:0]  :  S_ARAddr[13:0];
             RDATA:  A = reg_ARAddr;
             WDATA:  A = reg_AWAddr;
             default: A = 14'd0;

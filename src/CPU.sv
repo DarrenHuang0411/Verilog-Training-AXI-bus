@@ -21,6 +21,8 @@ module CPU (
     input           IM_Trans_Stall,
   //DM  
     output logic    DM_WEB,
+    output logic    DM_read_sel,
+    output logic    DM_write_sel,
     output logic    [`DATA_WIDTH -1:0] DM_BWEB,
     output logic    [`AXI_ADDR_BITS -1:0] DM_addr,
     output logic    [`AXI_DATA_BITS -1:0] DM_Din,
@@ -185,7 +187,7 @@ module CPU (
 
 
     assign  IM_WEB    =   1'b1; // read mode
-    assign  IM_addr   =   {18'd0, IF_IM_pc[15:2]};
+    assign  IM_addr   =   IF_IM_pc;
 
     // SRAM_wrapper IM1(
     //     .CLK(~clk), .RST(rst),
@@ -341,8 +343,10 @@ module CPU (
 
     // DM1
         assign  DM_WEB  =   SRAM_web;
+        assign  DM_read_sel =   EXE_MEM_DM_read;
+        assign  DM_write_sel =   EXE_MEM_DM_write;        
         assign  DM_BWEB =   DM_write_enable;
-        assign  DM_addr =   {18'd0, EXE_MEM_ALU_o[15:2]};
+        assign  DM_addr =   {15'd0, 1'b1, 2'd0, EXE_MEM_ALU_o[15:2]};
         assign  DM_Din  =   MEM_DM_Din;
         assign  DM_Dout =   DM_MEM_Dout;
     // SRAM_wrapper DM1(

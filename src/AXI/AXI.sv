@@ -168,7 +168,7 @@ module AXI(
   //---------- you should put your design here ----------//
   //-------------------- Parameter --------------------//	
   	//Default slave
-	  logic	[`AXI_ID_BITS -1:0]  	w_DS_AWID;
+	  logic	[`AXI_IDS_BITS -1:0]  	w_DS_AWID;
 	  logic	[`AXI_ADDR_BITS -1:0]	w_DS_AWAddr; 
 	  logic	[`AXI_LEN_BITS -1:0] 	w_DS_AWLen;  
 	  logic	[`AXI_SIZE_BITS -1:0]	w_DS_AWSize; 
@@ -291,7 +291,7 @@ module AXI(
 	  //M0
 	  //M1
 		.M1_AWID	(AWID_M1),   
-		.M1_AWAddr	(AWID_M1), 
+		.M1_AWAddr	(AWADDR_M1), 
 		.M1_AWLen	(AWLEN_M1),  
 		.M1_AWSize	(AWSIZE_M1), 
 		.M1_AWBurst	(AWBURST_M1),
@@ -324,7 +324,7 @@ module AXI(
 	);
 
 	Wdata	Wdata_inst(
-        .clk(clk), .rst(rst),		
+        .clk(ACLK), .rst(ARESETn),		
 	  //M0
 	  //M1
 		.M1_WData	(WDATA_M1), 
@@ -349,11 +349,15 @@ module AXI(
 		.DS_WStrb	(w_DS_WStrb ),  
 		.DS_WLast	(w_DS_WLast ),  
 		.DS_WValid	(w_DS_WValid),
-		.DS_WReady	(w_DS_WReady)
+		.DS_WReady	(w_DS_WReady),
+	  //help signal
+		.S0_AWValid	(AWVALID_S0),
+		.S1_AWValid	(AWVALID_S1),
+		.DS_AWValid	(w_DS_AWValid)
 	);
 
 	Wresp	Wresp_inst(
-        .clk(clk), .rst(rst),		
+        .clk(ACLK), .rst(ARESETn),		
 	  //M0
 	  //M1
 		.M1_BID		(BID_M1),
@@ -378,7 +382,7 @@ module AXI(
 	);
 
 	DefaultSlave DefaultSlave_inst(
-        .ACLK(clk), .ARESETn(rst),		
+        .ACLK(ACLK), .ARESETn(ARESETn),		
 		.DS_AWID	(w_DS_AWID),
 		.DS_AWAddr 	(w_DS_AWAddr ),
 		.DS_AWLen  	(w_DS_AWLen  ),
