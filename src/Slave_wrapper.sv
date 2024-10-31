@@ -165,6 +165,7 @@
         else      reg_ARID   <=  (Raddr_done)  ? S_ARID : reg_ARID;
       end
 
+<<<<<<< Updated upstream
       always_ff @(posedge clk or posedge rst) begin
         if(rst)   reg_ARAddr   <=  `MEM_ADDR_LEN'd0;
         else      reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
@@ -187,6 +188,72 @@
       assign  S_RID     = reg_ARID;
       //Data problem (need t solve)
       assign  S_RData   = DO;
+=======
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
+          else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[15:2] : reg_AWAddr;
+        end   
+        
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn)   reg_AWLen   <=  `AXI_LEN_BITS'd0;
+          else      reg_AWLen   <=  (Waddr_done)  ? S_AWLen : reg_AWLen;
+        end
+        //awsize
+        //awburst
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn) begin
+            S_AWReady    <=   1'b0;
+          end          
+          else  begin
+            case (S_cur)
+              SADDR:      S_AWReady   <= (Waddr_done) ? 1'b0 : 1'b1;
+              WRESP:      S_AWReady   <=   1'b0;  
+              default:    S_AWReady   <=   1'b0;
+            endcase
+          end      
+        end    
+      //Data
+        //Wdata(MEM)
+        //Wstrb(MEM)
+        //WLast(Last Signal)
+        assign  S_WReady  = (S_cur == WDATA)  ? 1'b1  : 1'b0;       
+      //Resp
+        assign  S_BID     = reg_AWID; 
+        assign  S_BResp   = `AXI_RESP_OKAY;
+        assign  S_BValid  = (S_cur == WRESP)  ? 1'b1  : 1'b0;  
+    //---------------------- R-channel ----------------------// 
+      //Addr
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn) begin
+            reg_ARID      <=  `AXI_IDS_BITS'd0;
+            reg_ARAddr    <=  `MEM_ADDR_LEN'd0;
+            reg_ARLen     <=  `AXI_LEN_BITS'd0;
+          end          
+          else  begin
+            reg_ARID     <=  (Raddr_done)  ? S_ARID : reg_ARID;
+            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[13:0] : reg_ARAddr;
+            reg_ARLen    <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
+          end      
+        end
+        //Rsize
+        //Rburst
+        always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn) begin
+            S_ARReady    <=   1'b0;
+          end          
+          else  begin
+            case (S_cur)
+              SADDR:      S_ARReady   <= (Raddr_done) ? 1'b0 : 1'b1;
+              WRESP:      S_ARReady   <=   1'b0;  
+              default:    S_ARReady   <=   1'b0;
+            endcase
+          end      
+        end        
+      //data
+        assign  S_RID     = reg_ARID;
+        //Data problem (need to solve)
+        assign  S_RData   = DO;
+>>>>>>> Stashed changes
 
       assign  S_RResp   = `AXI_RESP_OKAY;
       assign  S_RLast   = (cnt == reg_ARLen)  ? 1'b1  : 1'b0;    
@@ -212,4 +279,19 @@
       end
       assign  DI        = S_WData;
 
+<<<<<<< Updated upstream
+=======
+        assign  BWEB      = {{8{S_WStrb[3]}}, {8{S_WStrb[2]}},  {8{S_WStrb[1]}}, {8{S_WStrb[0]}}};
+          
+        always_comb begin
+          case (S_cur)
+            SADDR:  A = (Waddr_done)  ? S_AWAddr[15:2]  :  S_ARAddr[15:2];
+            RDATA:  A = reg_ARAddr;
+            WDATA:  A = reg_AWAddr;
+            default: A = 14'd0;
+          endcase
+        end
+        assign  DI        = S_WData;
+        
+>>>>>>> Stashed changes
     endmodule

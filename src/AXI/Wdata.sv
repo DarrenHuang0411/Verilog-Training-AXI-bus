@@ -46,7 +46,7 @@
         assign  Arib_Dec_Valid  = M1_WValid;
     //Slave 0 --> IM 
         assign  S0_WData  = M1_WData;
-        assign  S0_WStrb  = M1_WStrb;//
+        assign  S0_WStrb  = 4'hf;//
         assign  S0_WLast  = M1_WLast;
     //Slave 1 --> DM 
         assign  S0_WData  = M1_WData;

@@ -39,6 +39,13 @@ module CPU (
     wire                        HAZ_IF_pc_w;
     wire                        HAZ_IF_instr_flush;
     wire                        wire_HAZ_IF_ID_reg_write;
+<<<<<<< Updated upstream
+=======
+    wire                        wire_HAZ_ID_EXE_reg_write;
+    wire                        wire_HAZ_EXE_MEM_reg_write;
+    wire                        wire_HAZ_Stall_Both;  
+    wire                        wire_HAZ_MEM_WB_reg_write;      
+>>>>>>> Stashed changes
     wire                        wire_ctrl_sig_flush;
     wire                        wire_HAZ_CSR_lw_use;
 
@@ -337,11 +344,20 @@ module CPU (
     );
 
     // DM1
+<<<<<<< Updated upstream
         assign  DM_WEB  =   SRAM_web;
         assign  DM_BWEB =   DM_write_enable;
         assign  DM_addr =   {18'd0, EXE_MEM_ALU_o[15:2]};
+=======
+        assign  DM_WEB          =   SRAM_web;
+        assign  DM_read_sel     =   EXE_MEM_DM_read;
+        assign  DM_write_sel    =   EXE_MEM_DM_write;        
+        assign  DM_BWEB         =   DM_write_enable;
+        assign  DM_addr         =   EXE_MEM_ALU_o;
+        //{15'd0, 1'b1, 2'd0, EXE_MEM_ALU_o[15:2]};
+>>>>>>> Stashed changes
         assign  DM_Din  =   MEM_DM_Din;
-        assign  DM_Dout =   DM_MEM_Dout;
+        assign  DM_MEM_Dout =   DM_Dout;
     // SRAM_wrapper DM1(
     //     .CLK    (~clk), .RST(rst),
     //     .CEB    (MEM_DM_CS), // Chip Enable
@@ -378,7 +394,14 @@ module CPU (
         .ID_rs1_addr        (wire_ID_EXE_rs1_addr),
         .ID_rs2_addr        (wire_ID_EXE_rs2_addr),
         .EXE_rd_addr        (wire_EXE_MEM_rd_addr),
+<<<<<<< Updated upstream
 
+=======
+        
+        .IM_Trans_Stall     (IM_Trans_Stall),
+        .DM_Trans_Stall     (DM_Trans_Stall),
+        .Stall_both         (wire_HAZ_Stall_Both),
+>>>>>>> Stashed changes
         .pc_write           (HAZ_IF_pc_w),  
         .instr_flush        (HAZ_IF_instr_flush),
         .IF_ID_reg_write    (wire_HAZ_IF_ID_reg_write),
@@ -457,7 +480,18 @@ module CPU (
             ID_EXE_reg_file_write   <=  0;
             ID_EXE_reg_file_FP_write<=  0;
         end 
+<<<<<<< Updated upstream
         else begin
+=======
+        // else if (wire_ctrl_sig_flush) begin
+        //     ID_EXE_branch_signal        <=  1'b0 ;   
+        //     ID_EXE_DM_read              <=  1'b0 ;
+        //     ID_EXE_DM_write             <=  1'b0 ; 
+        //     ID_EXE_reg_file_write       <=  1'b0 ;   
+        //     ID_EXE_reg_file_FP_write    <=  1'b0 ;                                   
+        // end
+        else if (wire_HAZ_ID_EXE_reg_write)begin
+>>>>>>> Stashed changes
             ID_EXE_pc_in            <= wire_ID_EXE_pc_in;
             ID_EXE_rs1              <= wire_ID_EXE_rs1;
             ID_EXE_rs2              <= wire_ID_EXE_rs2;
@@ -473,6 +507,7 @@ module CPU (
             ID_EXE_ALU_Ctrl_op      <= wire_ID_EXE_ALU_Ctrl_op  ;
             ID_EXE_pc_mux           <= wire_ID_EXE_pc_mux       ;
             ID_EXE_ALU_rs2_sel      <= wire_ID_EXE_ALU_rs2_sel  ;
+<<<<<<< Updated upstream
             ID_EXE_branch_signal    <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_branch_signal;
             ID_EXE_rd_sel           <= wire_ID_EXE_rd_sel       ;
             ID_EXE_Din_sel          <= wire_ID_EXE_Din_sel       ;
@@ -481,6 +516,16 @@ module CPU (
             ID_EXE_WB_data_sel      <= wire_ID_EXE_WB_data_sel  ;
             ID_EXE_reg_file_write   <= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_reg_file_write;   
             ID_EXE_reg_file_FP_write<= (wire_ctrl_sig_flush) ? 1'b0 : wire_ID_EXE_reg_file_FP_write;  
+=======
+            ID_EXE_branch_signal    <= (wire_ctrl_sig_flush)? 2'b0 : wire_ID_EXE_branch_signal;
+            ID_EXE_rd_sel           <= wire_ID_EXE_rd_sel       ;
+            ID_EXE_Din_sel          <= wire_ID_EXE_Din_sel       ;
+            ID_EXE_DM_read          <= (wire_ctrl_sig_flush)? 1'b0 :wire_ID_EXE_DM_read;
+            ID_EXE_DM_write         <= (wire_ctrl_sig_flush)? 1'b0 :wire_ID_EXE_DM_write;   
+            ID_EXE_WB_data_sel      <= wire_ID_EXE_WB_data_sel  ;
+            ID_EXE_reg_file_write   <= (wire_ctrl_sig_flush)? 1'b0 :wire_ID_EXE_reg_file_write;   
+            ID_EXE_reg_file_FP_write<= (wire_ctrl_sig_flush)? 1'b0 :wire_ID_EXE_reg_file_FP_write;  
+>>>>>>> Stashed changes
         end
     end
 
@@ -503,7 +548,15 @@ module CPU (
             EXE_MEM_reg_file_write    <=    0;
             EXE_MEM_reg_file_FP_write <=    0;                            
         end 
+<<<<<<< Updated upstream
         else begin
+=======
+        // else if(wire_HAZ_Stall_Both) begin
+        //     EXE_MEM_DM_read           <=    0;
+        //     EXE_MEM_DM_write          <=    0;
+        // end
+        else if(wire_HAZ_EXE_MEM_reg_write) begin
+>>>>>>> Stashed changes
             EXE_MEM_PC                <=    wire_EXE_MEM_PC         ;                 
             EXE_MEM_ALU_o             <=    wire_EXE_MEM_ALU_o      ; 
             EXE_MEM_ALU_FP_o          <=    wire_EXE_MEM_ALU_FP_o   ;                                               

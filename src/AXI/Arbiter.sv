@@ -38,6 +38,7 @@
                         I1      =   2'd2;
   //------------------------- FSM -------------------------//
     always_comb begin
+<<<<<<< Updated upstream
       unique if(I0_Valid)
         Master_sel  =   2'd1; 
       else if(I1_Valid)
@@ -45,6 +46,84 @@
       else
         Master_sel  =   2'd0;        
     end
+=======
+      case (Master_sel)
+        IDLE: begin
+          if(I0_Valid && I1_Valid)
+            Master_sel_nxt  = I1;
+          else if(I1_Valid)
+            Master_sel_nxt  = I1;  
+          else if(I0_Valid)
+            Master_sel_nxt  = I0;            
+          else begin
+            Master_sel_nxt  = IDLE;
+          end
+        end 
+        I0: begin
+          // if(Round_Robin_CNT == 2'd2)
+          //   Master_sel_nxt  = IDLE;
+          if (IB0_Ready)
+            Master_sel_nxt  = (I1_Valid)? I1 : IDLE;  
+          else
+            Master_sel_nxt  = I0;          
+        end
+        I1: begin
+          // if(Round_Robin_CNT == 2'd2 && IB1_Ready)
+          //   Master_sel_nxt  = IDLE;
+          if (IB1_Ready)
+            Master_sel_nxt  = (I0_Valid)? I0 : IDLE;             
+          else
+            Master_sel_nxt  = I1;              
+        end
+        default:  Master_sel_nxt  = IDLE;
+      endcase
+    end
+  //
+    // always_comb begin
+    //   case (Master_sel)
+    //     IDLE: begin
+    //       if(I0_Valid && I1_Valid)
+    //         Master_sel_nxt  = I0;
+    //       else if(I0_Valid)
+    //         Master_sel_nxt  = I0;            
+    //       else if(I1_Valid)
+    //         Master_sel_nxt  = I1;  
+    //       else begin
+    //         Master_sel_nxt  = IDLE;
+    //       end
+    //     end 
+    //     I0: begin
+    //       if(!I1_Valid && I0_Valid && IB0_Ready)
+    //         Master_sel_nxt  = IDLE;
+    //       else if (I1_Valid && I0_Valid && IB0_Ready)
+    //         Master_sel_nxt  = I1;  
+    //       else
+    //         Master_sel_nxt  = I0;          
+    //     end
+    //     I1: begin
+    //       if(!I0_Valid && I1_Valid && IB1_Ready)
+    //         Master_sel_nxt  = IDLE;
+    //       else if (I0_Valid && I1_Valid && IB1_Ready)
+    //         Master_sel_nxt  = I0;              
+    //       else
+    //         Master_sel_nxt  = I1;              
+    //     end
+    //     default:  Master_sel_nxt  = IDLE;
+    //   endcase
+    // end
+
+  //------------------- CNT (Round Robin) --------------------//
+    always_ff @(posedge clk or posedge rst) begin
+      if(!rst) 
+        Round_Robin_CNT   <=  2'd0;
+      else if (Master_sel == IDLE)
+        Round_Robin_CNT   <=  2'd0;
+      else begin
+        if(IB0_Ready || IB1_Ready)
+          Round_Robin_CNT   <=  Round_Robin_CNT + 1; 
+      end                    
+    end 
+>>>>>>> Stashed changes
     
     always_comb begin
         case (Master_sel)
