@@ -122,12 +122,12 @@
     assign  M0_RID      =   O_ID;
     assign  M0_RData    =   O_Data;
     assign  M0_RResp    =   O_Resp;
-    assign  M0_RLast    =   O_Last;
+    //assign  
 
     assign  M1_RID      =   O_ID;
     assign  M1_RData    =   O_Data;
     assign  M1_RResp    =   O_Resp;
-    assign  M1_RLast    =   O_Last;    
+    //assign  M1_RLast    =   O_Last;    
 
     always_comb begin
         case (Master_sel)
@@ -135,16 +135,22 @@
                 Arib_Dec_Ready  =   M0_RReady;
                 M0_RValid       =   Dec_Arib_Valid;
                 M1_RValid       =   1'b0;
+                M0_RLast        =   O_Last;
+                M1_RLast        =   1'b0;                
             end
             M1: begin
                 Arib_Dec_Ready  =   M1_RReady;                         
                 M0_RValid       =   1'b0;
-                M1_RValid       =   Dec_Arib_Valid;               
+                M1_RValid       =   Dec_Arib_Valid;     
+                M0_RLast        =   1'b0;                          
+                M1_RLast        =   O_Last;
             end
             default: begin
                 Arib_Dec_Ready  = 1'b0;        
                 M0_RValid       = 1'b0;
-                M1_RValid       = 1'b0;               
+                M1_RValid       = 1'b0;
+                M0_RLast        =   1'b0;                          
+                M1_RLast        =   1'b0;                               
             end  
         endcase
     end

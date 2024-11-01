@@ -105,7 +105,7 @@ module SRAM_wrapper (
       .DSLP     (1'b0),
       .SD       (1'b0),
       .PUDELAY  (),
-      .CLK      (ACLK),
+      .CLK      (~ACLK),
       .CEB      (w_CEB),
       .WEB      (w_WEB),
       .A        (w_A),

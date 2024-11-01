@@ -128,7 +128,7 @@
 
         always_ff @(posedge ACLK or posedge ARESETn) begin
           if(!ARESETn)   reg_AWAddr   <=  `MEM_ADDR_LEN'd0;
-          else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[13:0] : reg_AWAddr;
+          else      reg_AWAddr   <=  (Waddr_done)  ? S_AWAddr[15:2] : reg_AWAddr;
         end   
         
         always_ff @(posedge ACLK or posedge ARESETn) begin
@@ -168,7 +168,7 @@
           end          
           else  begin
             reg_ARID     <=  (Raddr_done)  ? S_ARID : reg_ARID;
-            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[13:0] : reg_ARAddr;
+            reg_ARAddr   <=  (Raddr_done)  ? S_ARAddr[15:2] : reg_ARAddr;
             reg_ARLen    <=  (Raddr_done)  ? S_ARLen : reg_ARLen;
           end      
         end
@@ -196,23 +196,23 @@
         assign  S_RValid  = (S_cur == RDATA)    ? 1'b1  : 1'b0;   
     //----------------------- Memory -----------------------//   
         always_comb begin
-          if (S_cur == SADDR) begin
-              CEB   =   S_ARValid | S_AWValid;            
-          end 
-          else if(S_cur == RDATA || S_cur == WDATA) begin
-              CEB   =   1'b1;                 
+          // if (S_cur == SADDR && S_ARValid) begin
+          //      CEB   =   1'b0;            
+          // end 
+          if(S_cur == RDATA || S_cur == WDATA) begin
+              CEB   =   1'b0;                 
           end
           else begin
-              CEB   =   1'b0;  
+              CEB   =   1'b1;  
           end
         end
         //WEB
         always_comb begin
           case (S_cur)
-            SADDR:    WEB   = 1'b0;
+            SADDR:    WEB   = 1'b1;
             RDATA:    WEB   = 1'b1;
             WDATA:    WEB   = 1'b0;
-            default:  WEB   = 1'b0;
+            default:  WEB   = 1'b1;
           endcase
         end
 
@@ -220,12 +220,16 @@
           
         always_comb begin
           case (S_cur)
-            SADDR:  A = (Waddr_done)  ? S_AWAddr[13:0]  :  S_ARAddr[13:0];
+            SADDR:  A = (Waddr_done)  ? S_AWAddr[15:2]  :  S_ARAddr[15:2];
             RDATA:  A = reg_ARAddr;
             WDATA:  A = reg_AWAddr;
             default: A = 14'd0;
           endcase
         end
+
+
+
+        //assign  DI        = (S_cur ==  WDATA) ? S_WData : 32'd0;
         assign  DI        = S_WData;
         
     endmodule

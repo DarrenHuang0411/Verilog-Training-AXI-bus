@@ -124,10 +124,23 @@
         .DM_Trans_Stall (w_DM_Trans_Stall)
     );
 
+    logic DM_stall;
+    always_ff @(posedge ACLK or posedge ARESETn)begin
+      if(~ARESETn)begin
+        DM_stall <= 0;
+      end
+      else begin
+        DM_stall <= (~w_IM_Trans_Stall)? 1'b0 : ((w_IM_Trans_Stall & ~w_DM_Trans_Stall)? 1'b1 : DM_stall);
+      end
+    end
+
+    logic RValid_both;
+    assign  Rvalid_both = M0_ARValid & M1_ARValid;
+
     Master_wrapper #(
       .C_ID   (4'b0001),
       .C_LEN  (`AXI_LEN_BITS'd0)
-    ) Master_wrapper_IM_inst (
+      ) Master_wrapper_IM_inst (
         .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_IM_WEB), 
@@ -171,19 +184,23 @@
         .M_RResp      (M0_RResp  ), 
         .M_RLast      (M0_RLast  ), 
         .M_RValid     (M0_RValid ),
-        .M_RReady     (M0_RReady )
-
+        .M_RReady     (M0_RReady ),
+      //helper
+        .M_RLast_h1   (M1_RLast),
+        .M_RValid_h1   (M1_ARValid),
+        .M_RReady_h1   (M1_ARReady),
+        .Rvalid_both  (Rvalid_both)
     );
 
     Master_wrapper #(
       .C_ID   (4'b0010),
       .C_LEN  (`AXI_LEN_BITS'd0)
-    ) Master_wrapper_DM_inst(
+      ) Master_wrapper_DM_inst(
         .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
-        .Memory_WEB   (w_DM_WEB  ), 
-        .Memory_DM_read_sel    (w_DM_read_sel),
-        .Memory_DM_write_sel   (w_DM_write_sel),          
+        .Memory_WEB   (w_DM_WEB), 
+        .Memory_DM_read_sel    (w_DM_read_sel & ~DM_stall),
+        .Memory_DM_write_sel   (w_DM_write_sel & ~DM_stall),          
         .Memory_BWEB  (w_DM_BWEB ),
         .Memory_Addr  (w_DM_addr ),
         .Memory_Din   (w_DM_Din  ),
@@ -224,6 +241,12 @@
         .M_RLast      (M1_RLast  ), 
         .M_RValid     (M1_RValid ),
         .M_RReady     (M1_RReady )
+
+        //helper
+        // .M_RLast_h1   (M0_RLast),
+        // .M_RValid_h1   (M0_ARValid),
+        // .M_RReady_h1   (M0_ARReady),
+        // .Rvalid_both  (Rvalid_both)
     );
 
     endmodule

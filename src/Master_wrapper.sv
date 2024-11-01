@@ -49,7 +49,12 @@
         input           [1:0]                   M_RResp,   
         input                                   M_RLast,   
         input                                   M_RValid,  
-        output  logic                           M_RReady                  
+        output  logic                           M_RReady,
+      //helping signal
+        input                                   M_RLast_h1,
+        input                                   M_RValid_h1,        
+        input                                   M_RReady_h1,
+        input                                   Rvalid_both                   
     );
 
   //----------------------- Parameter -----------------------//
@@ -69,9 +74,23 @@
       logic   Start_burst_write;      
       logic   Start_burst_read;      
     //LAST Signal 
-      logic   W_last, R_last;     
+      logic   W_last, R_last, R_last_h1;     
     //Done Signal 
       logic   Raddr_done, Rdata_done, Waddr_done, Wdata_done, Wresp_done;
+
+    //both valid
+      logic   reg_Rvalid_both;
+
+      always_ff @(posedge ACLK or posedge ARESETn) begin
+          if(!ARESETn)
+            reg_Rvalid_both <= 1'b0;
+          else begin
+            if(reg_Rvalid_both == 1)
+              reg_Rvalid_both <=  (M_RLast_h1) ? 1'b0 : 1'b1;
+            else
+              reg_Rvalid_both <= Rvalid_both;
+          end
+      end
   //----------------------- Main Code -----------------------//    
     //------------------------- FSM -------------------------//
       always_ff @(posedge ACLK or posedge ARESETn) begin
@@ -95,7 +114,12 @@
             end
           end
           RADDR:  S_nxt  = (Raddr_done) ? RDATA   : RADDR; 
-          RDATA:  S_nxt  = (R_last    ) ? INITIAL : RDATA; 
+          RDATA:  begin
+            if(reg_Rvalid_both)  
+              S_nxt  = (M_RLast_h1) ? INITIAL : RDATA; 
+            else
+              S_nxt  = (R_last) ? INITIAL : RDATA;
+          end
           WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
           WDATA:  S_nxt  = (W_last)     ? WRESP   : WDATA; 
           WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
@@ -103,7 +127,7 @@
         endcase
       end
     //--------------------- Start Burst ---------------------//
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_comb begin
         if (!ARESETn) begin
           Start_burst_write   <=  1'b0;
           Start_burst_read    <=  1'b0;
@@ -132,13 +156,38 @@
       end
     //--------------------- Last Signal ---------------------//  
       assign  W_last  = M_WLast & Wdata_done;
-      assign  R_last  = M_RLast & Rdata_done;      
+      always_comb begin
+        if(reg_Rvalid_both)
+          R_last  = M_RLast_h1 & Rdata_done;
+        else
+          R_last  = M_RLast & Rdata_done;
+      end
+      //assign  R_last  = M_RLast & Rdata_done;  
+      logic reg_last;
+      // assign  R_last_h1 = M_RLast_h1 & M_RValid_h1 & M_RReady_h1;
+
+      // always_ff @(posedge ACLK or posedge ARESETn) begin
+      //     if(!ARESETn)   R_last   <=  1'd0;
+      //     else           R_last   <=  reg_last;
+      // end
+
+
+      // always_ff @(posedge ACLK or posedge ARESETn ) begin
+      //   if (!ARESETn) begin
+      //     reg_last  <=  1'b0;
+      //   end else begin
+      //     if(R_last_h1)
+      //       reg_last  <=  1'b0;
+      //     else
+      //       reg_last  <=  R_last;
+      //   end
+      // end
     //--------------------- Done Signal ---------------------//
       assign  Raddr_done  = M_ARValid & M_ARReady; 
       assign  Rdata_done  = M_RValid  & M_RReady;
       assign  Waddr_done  = M_AWValid & M_AWReady;
       assign  Wdata_done  = M_WValid  & M_WReady;
-      assign  Wresp_done  = M_ARValid & M_ARReady;
+      assign  Wresp_done  = M_BValid & M_BReady;
     //------------------------- CNT -------------------------//
       always_ff @(posedge ACLK or posedge ARESETn) begin
         if (!ARESETn) begin
@@ -176,7 +225,7 @@
         end
       end  
       //Data
-      assign  M_WStrb   =   {&Memory_BWEB[31:24], &Memory_BWEB[23:16], &Memory_BWEB[15:8], &Memory_BWEB[7:0]};
+      assign  M_WStrb   =   {|Memory_BWEB[31:24], |Memory_BWEB[23:16], |Memory_BWEB[15:8], |Memory_BWEB[7:0]};
       assign  M_WLast   =   ((S_cur == WDATA) && (cnt == M_AWLen))  ? 1'b1  : 1'b0; 
       assign  M_WData   =   Memory_Din;
       assign  M_WValid  =   (S_cur == WDATA)  ? 1'b1 : 1'b0;
@@ -223,10 +272,17 @@
         case (S_cur)
           INITIAL:  Trans_Stall <=   ((~Memory_WEB) & Memory_DM_write_sel)|(Memory_WEB & Memory_DM_read_sel);
           RADDR:    Trans_Stall <=  1'b1;
-          RDATA:    Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
+          RDATA:      
+            //Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
+            begin  
+              if(reg_Rvalid_both)
+                Trans_Stall <=  (M_RLast_h1) ? 1'b0 : 1'b1;
+              else
+                Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
+            end
           WADDR:    Trans_Stall <=  1'b1;
-          WDATA:    Trans_Stall <=  1'b1;
-          WRESP:    Trans_Stall <=  (W_last) ? 1'b0 : 1'b1;
+          WDATA:    Trans_Stall <=  (W_last) ? 1'b0 : 1'b1;
+          WRESP:    Trans_Stall <=  1'b0;
           default:  Trans_Stall <=  1'b0;
         endcase          
         end

@@ -11,22 +11,33 @@ module Hazard_Ctrl (
 
     input                 IM_Trans_Stall,
     input                 DM_Trans_Stall,
+    output  reg           Stall_both,  //Master & also for CSR
     output  reg           pc_write,  
     output  reg           IF_ID_reg_write,
     output  reg           ID_EXE_reg_write,  
     output  reg           EXE_MEM_reg_write,    
     output  reg           MEM_WB_reg_write,  
-    output  wire          lw_use  // for CSR
+    output  wire          lw_use,  // for CSR
+    output  logic         Hazard_Stall
 );
 
-assign  lw_use  =   EXE_read && ((EXE_rd_addr == ID_rs1_addr)||(EXE_rd_addr== ID_rs2_addr));
+assign  lw_use          =   EXE_read && ((EXE_rd_addr == ID_rs1_addr)||(EXE_rd_addr== ID_rs2_addr));
+assign  Hazard_Stall    =   IM_Trans_Stall || DM_Trans_Stall;
 
 //------------------- parameter -------------------//    
+    always_comb begin
+        if (IM_Trans_Stall && DM_Trans_Stall) begin
+            Stall_both          =   1'b1;
+        end 
+        else begin
+            Stall_both          =   1'b0;            
+        end
+    end
 
     always_comb begin
         if(IM_Trans_Stall || DM_Trans_Stall) begin
             instr_flush         =   1'b0;
-            ctrl_sig_flush      =   1'b0;            
+            ctrl_sig_flush      =   1'b0;       
             pc_write            =   1'b0;
             IF_ID_reg_write     =   1'b0; 
             ID_EXE_reg_write    =   1'b0;

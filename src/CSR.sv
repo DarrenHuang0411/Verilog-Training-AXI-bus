@@ -2,13 +2,14 @@
 
 module CSR (
   input  clk, rst,
-  input  logic    [`OP_CODE -1:0]     CSR_op,
-  input  logic    [`FUNCTION_3 -1:0]  function_3,
-  input  logic    [`DATA_WIDTH -1:0]  rs1,
-  input  logic    [`DATA_WIDTH -1:0]  imm_csr,
+  input           [`OP_CODE -1:0]     CSR_op,
+  input           [`FUNCTION_3 -1:0]  function_3,
+  input           [`DATA_WIDTH -1:0]  rs1,
+  input           [`DATA_WIDTH -1:0]  imm_csr,
 
-  input  logic                        lw_use,
-  input  logic    [1:0]               branch,
+  input                               HAZ_Stall,
+  input                               lw_use,
+  input           [1:0]               branch,
   output logic    [`DATA_WIDTH -1:0]  csr_rd_data
 );
 
@@ -25,16 +26,37 @@ module CSR (
   reg   [`CSR_REG_WIDTH -1 :0] count_instret;
   reg   [`CSR_REG_WIDTH -1 :0] count_cycle;
 
+  logic [1:0] count_adjust;
 //----------------------- count instr -----------------------// 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            count_instret   <=  0;
             count_cycle     <=  0;
         end
         else begin
             count_cycle     <=  count_cycle + 1;
+        end
+    end
 
-            if(count_cycle >= 2) begin
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            count_adjust     <=  0;
+        end
+        else begin
+          if (count_adjust == 2'd2 || HAZ_Stall) begin
+            count_adjust     <=   count_adjust;
+          end 
+          else begin
+            count_adjust     <=   count_adjust + 1;
+          end
+        end
+    end
+
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            count_instret   <=  0;
+        end
+        else begin
+            if(count_adjust >= 2'd2 && !HAZ_Stall) begin
               if(lw_use) 
                 count_instret   <=  count_instret;
               else if(|branch)
@@ -44,7 +66,6 @@ module CSR (
             end
         end
     end
-
 //---------------------------- rd ----------------------------//
     always_comb begin
         if(|rs1)
