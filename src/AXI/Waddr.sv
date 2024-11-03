@@ -49,7 +49,7 @@
         logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
         logic   [`AXI_LEN_BITS -1:0]    O_Len;  
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
-        logic   [1:0]                   O_burst;
+        logic   [1:0]                   O_Burst;
     //connect Arbiter & Decoder
         logic   Arb_Dec_Valid;
         logic   Dec_Arb_Ready;
@@ -66,12 +66,12 @@
         .I0_Valid(1'd0),
         .IB0_Ready(M0_AWReady),
       //Master 1 --> DM
-        .I1_ID(M1_AWID),   
-        .I1_Addr(M1_AWAddr), 
-        .I1_Len(M1_AWAddr),  
-        .I1_Size(M1_AWSize),
-        .I1_Burst(M1_AWBurst),    
-        .I1_Valid(M1_AWValid),    
+        .I1_ID    (M1_AWID),   
+        .I1_Addr  (M1_AWAddr), 
+        .I1_Len   (M1_AWLen),  
+        .I1_Size  (M1_AWSize),
+        .I1_Burst (M1_AWBurst),    
+        .I1_Valid (M1_AWValid),    
         .IB1_Ready(M1_AWReady),   
       //output info --> to all slave
         .O_IDS  (O_IDS),
@@ -88,7 +88,7 @@
         assign  S0_AWAddr   =   O_Addr;  
         assign  S0_AWLen    =   O_Len;  
         assign  S0_AWSize   =   O_Size; 
-        assign  S0_AWBurst  =   O_burst;
+        assign  S0_AWBurst  =   O_Burst;
     //Slave 1 --> DM 
         assign  S1_AWID     =   O_IDS;    
         assign  S1_AWAddr   =   O_Addr;

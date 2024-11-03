@@ -74,7 +74,7 @@
 
     //Default Slave 
     //AW finish & maintain Slave_sel to check
-      always_ff @(posedge clk or posedge rst) begin
+      always_ff @(posedge clk) begin
         if(!rst) begin
           reg_S0_AWValid  <=  1'b0;
           reg_S1_AWValid  <=  1'b0;

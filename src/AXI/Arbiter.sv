@@ -40,7 +40,7 @@
                       I1      =   2'd2;
     //Internal Connect
   //------------------- FSM (Round Robin) --------------------//
-    always_ff @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk) begin
       if(!rst) 
         Master_sel  <=  IDLE;
       else
@@ -114,7 +114,7 @@
     // end
 
   //------------------- CNT (Round Robin) --------------------//
-    always_ff @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk) begin
       if(!rst) 
         Round_Robin_CNT   <=  2'd0;
       else if (Master_sel == IDLE)

@@ -81,7 +81,7 @@
     //both valid
       logic   reg_Rvalid_both;
 
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
           if(!ARESETn)
             reg_Rvalid_both <= 1'b0;
           else begin
@@ -93,7 +93,7 @@
       end
   //----------------------- Main Code -----------------------//    
     //------------------------- FSM -------------------------//
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
           if(!ARESETn)
               S_cur   = INITIAL;
           else
@@ -189,7 +189,7 @@
       assign  Wdata_done  = M_WValid  & M_WReady;
       assign  Wresp_done  = M_BValid & M_BReady;
     //------------------------- CNT -------------------------//
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
         if (!ARESETn) begin
           cnt   <=  `AXI_LEN_BITS'd0;
         end 
@@ -213,7 +213,7 @@
       assign  M_AWBurst   = `AXI_BURST_INC; 
       assign  M_AWAddr    = Memory_Addr;
       
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
         if (!ARESETn)
           M_AWValid   <=  1'b0;
         else begin
@@ -239,7 +239,7 @@
       assign  M_ARBurst   = `AXI_BURST_INC; 
       assign  M_ARAddr    = Memory_Addr; 
 
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
         if (!ARESETn)
           M_ARValid   <=  1'b0;
         else begin
@@ -251,7 +251,7 @@
         end
       end  
       //Data
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
         if (!ARESETn)
           reg_RData   <=  `DATA_WIDTH'b0;
         else begin
@@ -260,11 +260,11 @@
       end
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
     //------------------------- CPU -------------------------//
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
           if(!ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
           else           Memory_Dout   <=  (Rdata_done)  ? M_RData : reg_RData;
       end
-      always_ff @(posedge ACLK or posedge ARESETn) begin
+      always_ff @(posedge ACLK) begin
         if(!ARESETn)  begin
           Trans_Stall <=  1'b0;
         end   
@@ -287,8 +287,6 @@
         endcase          
         end
       end
-      always_comb begin
 
-      end
       //assign  Trans_Stall = ((Memory_WEB  == 1'b1) & (~Rdata_done)) |((Memory_WEB  == 1'b0) & (~Wdata_done));
 endmodule

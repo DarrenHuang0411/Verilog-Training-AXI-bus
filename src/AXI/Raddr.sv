@@ -54,7 +54,7 @@
         logic   [`AXI_ADDR_BITS -1:0]   O_Addr; 
         logic   [`AXI_LEN_BITS -1:0]    O_Len;  
         logic   [`AXI_SIZE_BITS -1:0]   O_Size; 
-        logic   [1:0]                   O_burst;
+        logic   [1:0]                   O_Burst;
     //connect Arbiter & Decoder
         logic                           Arb_Dec_Valid;
         logic                           Dec_Arb_Ready;
@@ -66,7 +66,7 @@
         .I0_ID      (M0_ARID),
         .I0_Addr    (M0_ARAddr),
         .I0_Len     (M0_ARLen),
-        .I0_Size    (M0_ARLen),
+        .I0_Size    (M0_ARSize),
         .I0_Burst   (M0_ARBurst),
         .I0_Valid   (M0_ARValid),
         .IB0_Ready  (M0_ARReady),

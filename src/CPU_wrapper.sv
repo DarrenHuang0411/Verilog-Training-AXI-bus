@@ -82,6 +82,8 @@
         output  logic                          M1_RReady
     );
 
+  
+
   //----------------------- Parameter -----------------------//
     //CPU-Master1(IM)
       logic     w_IM_WEB;
@@ -105,6 +107,13 @@
         else
           adj_ARESETn <=  1'b1;
       end      
+    //亂搞
+  logic tmp_stall;
+  always_ff @(posedge ACLK) begin
+    if(~ARESETn) tmp_stall = 1'b1;
+    else if (w_IM_Trans_Stall) tmp_stall = 1'b0;
+  end
+
   //----------------------- Main code -----------------------//
     CPU CPU_inst(
         .clk(ACLK), .rst(!adj_ARESETn),
@@ -112,7 +121,7 @@
         .IM_WEB         (w_IM_WEB),
         .IM_addr        (w_IM_addr),
         .IM_IF_instr    (w_IM_IF_instr),
-        .IM_Trans_Stall (w_IM_Trans_Stall),
+        .IM_Trans_Stall (w_IM_Trans_Stall | tmp_stall),
         
         .DM_WEB         (w_DM_WEB),
         .DM_read_sel    (w_DM_read_sel),
@@ -124,9 +133,10 @@
         .DM_Trans_Stall (w_DM_Trans_Stall)
     );
 
+
     logic DM_stall;
-    always_ff @(posedge ACLK or posedge ARESETn)begin
-      if(~ARESETn)begin
+    always_ff @(posedge ACLK)begin
+      if(!ARESETn)begin
         DM_stall <= 0;
       end
       else begin

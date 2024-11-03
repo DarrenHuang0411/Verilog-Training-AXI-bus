@@ -119,7 +119,7 @@
         logic                          B2S0_BValid;
         logic                          B2S0_BReady;
         
-        logic  [`AXI_ID_BITS  -1:0]    B2S1_BID     ;
+        logic  [`AXI_IDS_BITS  -1:0]   B2S1_BID     ;
         logic  [1:0]                   B2S1_BResp   ;
         logic                          B2S1_BValid;
         logic                          B2S1_BReady;  

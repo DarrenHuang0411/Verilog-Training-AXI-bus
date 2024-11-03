@@ -49,7 +49,7 @@ module SRAM_wrapper (
     logic                         w_CEB;
     logic                         w_WEB;
     logic   [`AXI_DATA_BITS -1:0] w_BWEB;
-    logic   [`MEM_ADDR_LEN:0]     w_A;   
+    logic   [`MEM_ADDR_LEN  -1:0]     w_A;   
     logic   [`AXI_DATA_BITS -1:0] w_DI;   
     logic   [`AXI_DATA_BITS -1:0] w_DO;  
 

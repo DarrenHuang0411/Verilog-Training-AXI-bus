@@ -7,7 +7,7 @@
     module DefaultSlave (
         input   ACLK, ARESETn,
       //W channel - Addr      
-        input   [`AXI_ID_BITS -1:0]           DS_AWID ,
+        input   [`AXI_IDS_BITS -1:0]          DS_AWID ,
         input   [`AXI_ADDR_BITS -1:0]         DS_AWAddr ,
         input   [`AXI_LEN_BITS -1:0]          DS_AWLen    ,
         input   [`AXI_SIZE_BITS -1:0]         DS_AWSize   ,
@@ -58,7 +58,7 @@
       logic   [`AXI_LEN_BITS -1:0]  reg_ARLen;
   //----------------------- Main Code -----------------------//
     //---------------------    FSM    ---------------------//
-        always_ff @(posedge ACLK or posedge ARESETn) begin
+        always_ff @(posedge ACLK) begin
             if (!ARESETn)   S_cur <=  SADDR;
             else       S_cur <=  S_nxt;
         end
@@ -113,13 +113,13 @@
     //--------------------- R channel ---------------------//
       //Addr
         //ARID not need to store
-        always_ff @(posedge ACLK or posedge ARESETn) begin
+        always_ff @(posedge ACLK) begin
           if (!ARESETn)  reg_ARLen <=  `AXI_LEN_BITS'd0;
           else          reg_ARLen <=  (Raddr_done)  ? DS_ARLen  : reg_ARLen;
         end
         assign  DS_ARReady =  (DS_ARValid)  ? 1'b1  : 1'b0;       
       //Data
-        always_ff @(posedge ACLK or posedge ARESETn) begin
+        always_ff @(posedge ACLK) begin
           if (!ARESETn)  DS_RID    <=  `AXI_IDS_BITS'd0;
           else          DS_RID    <=  (Raddr_done)  ? DS_ARID  : DS_RID;          
         end
