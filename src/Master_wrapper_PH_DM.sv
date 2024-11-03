@@ -2,7 +2,7 @@
 
 
 //------------------------- Module -------------------------//
-    module Master_wrapper #(
+    module Master_wrapper_PH_DM #(
       parameter   C_ID  = 4'b0000,
       parameter   C_LEN = `AXI_LEN_BITS'd15
     ) (
@@ -251,42 +251,55 @@
         end
       end  
       //Data
+      logic [31:0] reg_RData_test;
       always_ff @(posedge ACLK) begin
         if (!ARESETn)
-          reg_RData   <=  `DATA_WIDTH'b0;
+          reg_RData_test   <=  `DATA_WIDTH'b0;
         else begin
-          reg_RData   <=  (Rdata_done)  ? M_RData : reg_RData;
+          reg_RData_test   <=  (reg_Rvalid_both && Rdata_done)  ? M_RData : reg_RData_test;
         end        
       end
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
-    //------------------------- CPU -------------------------//
-      always_ff @(posedge ACLK) begin
-          if(!ARESETn)   Memory_Dout  <=  `AXI_DATA_BITS'd0;
-          else           Memory_Dout   <=  (Rdata_done)  ? M_RData : reg_RData;
+      //assign  reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
+      always_comb begin
+        if(reg_Rvalid_both)
+          reg_RData   =  (M_RLast_h1)  ? M_RData : reg_RData;
+        else
+          reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
       end
-      always_ff @(posedge ACLK) begin
-        if(!ARESETn)  begin
-          Trans_Stall <=  1'b0;
-        end   
-        else begin
+    //------------------------- CPU -------------------------//
+      assign  Memory_Dout   = (reg_Rvalid_both) ? reg_RData_test : reg_RData;
+      // always_ff @(posedge ACLK) begin
+      //   if(!ARESETn)  begin
+      //     Trans_Stall <=  1'b0;
+      //   end   
+      //   else begin
+      always_comb begin
         case (S_cur)
-          INITIAL:  Trans_Stall <=   ((~Memory_WEB) & Memory_DM_write_sel)|(Memory_WEB & Memory_DM_read_sel);
-          RADDR:    Trans_Stall <=  1'b1;
+          INITIAL:  begin
+            if(Start_burst_write || Start_burst_read)
+              Trans_Stall =   ((~Memory_WEB) & Memory_DM_write_sel)|(Memory_WEB & Memory_DM_read_sel);
+            else
+              Trans_Stall = 1'b0;
+          end
+          
+
+          RADDR:    Trans_Stall =  1'b1;
           RDATA:      
             //Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
             begin  
               if(reg_Rvalid_both)
-                Trans_Stall <=  (M_RLast_h1) ? 1'b0 : 1'b1;
+                Trans_Stall =  (M_RLast_h1) ? 1'b0 : 1'b1;
               else
-                Trans_Stall <=  (R_last) ? 1'b0 : 1'b1;
+                Trans_Stall =  (R_last) ? 1'b0 : 1'b1;
             end
-          WADDR:    Trans_Stall <=  1'b1;
-          WDATA:    Trans_Stall <=  (W_last) ? 1'b0 : 1'b1;
-          WRESP:    Trans_Stall <=  1'b0;
-          default:  Trans_Stall <=  1'b0;
+          WADDR:    Trans_Stall =  1'b1;
+          WDATA:    Trans_Stall =  (W_last) ? 1'b0 : 1'b1;
+          WRESP:    Trans_Stall =  1'b0;
+          default:  Trans_Stall =  1'b0;
         endcase          
         end
-      end
+      //end
 
       //assign  Trans_Stall = ((Memory_WEB  == 1'b1) & (~Rdata_done)) |((Memory_WEB  == 1'b0) & (~Wdata_done));
 endmodule

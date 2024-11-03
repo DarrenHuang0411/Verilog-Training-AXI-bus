@@ -3,7 +3,9 @@
     //Type        :  Master 
 //----------------------- Environment -----------------------//
     `include "CPU.sv"
-    `include "Master_wrapper.sv"
+    //`include "Master_wrapper.sv"
+    `include "Master_wrapper_PL_IM.sv"
+    `include "Master_wrapper_PH_DM.sv"
 //------------------------- Module -------------------------//
     module CPU_wrapper (
         input   ACLK, ARESETn,
@@ -106,22 +108,32 @@
           adj_ARESETn <=  1'b0;
         else
           adj_ARESETn <=  1'b1;
-      end      
+      end
+
+    //Adjust rst for CPU(Delay wrapper & AXI to check addr 0 can be stall)
+      logic     adj_ARESETn_CPU;
+      always_ff @(negedge ACLK) begin
+        if(ARESETn)
+          adj_ARESETn_CPU <=  1'b1;
+        else
+          adj_ARESETn_CPU <=  1'b0;
+      end
+
     //亂搞
-  logic tmp_stall;
-  always_ff @(posedge ACLK) begin
-    if(~ARESETn) tmp_stall = 1'b1;
-    else if (w_IM_Trans_Stall) tmp_stall = 1'b0;
-  end
+  // logic tmp_stall;
+  // always_ff @(posedge ACLK) begin
+  //   if(~ARESETn) tmp_stall = 1'b1;
+  //   else if (w_IM_Trans_Stall) tmp_stall = 1'b0;
+  // end
 
   //----------------------- Main code -----------------------//
     CPU CPU_inst(
-        .clk(ACLK), .rst(!adj_ARESETn),
+        .clk(ACLK), .rst(!adj_ARESETn_CPU),
         
         .IM_WEB         (w_IM_WEB),
         .IM_addr        (w_IM_addr),
         .IM_IF_instr    (w_IM_IF_instr),
-        .IM_Trans_Stall (w_IM_Trans_Stall | tmp_stall),
+        .IM_Trans_Stall (w_IM_Trans_Stall),// | tmp_stall),
         
         .DM_WEB         (w_DM_WEB),
         .DM_read_sel    (w_DM_read_sel),
@@ -146,8 +158,9 @@
 
     logic RValid_both;
     assign  Rvalid_both = M0_ARValid & M1_ARValid;
-
-    Master_wrapper #(
+    logic w_DM_Write_addr;
+    assign  w_DM_Write_addr = M1_AWValid;
+    Master_wrapper_PL_IM #(
       .C_ID   (4'b0001),
       .C_LEN  (`AXI_LEN_BITS'd0)
       ) Master_wrapper_IM_inst (
@@ -197,20 +210,22 @@
         .M_RReady     (M0_RReady ),
       //helper
         .M_RLast_h1   (M1_RLast),
-        .M_RValid_h1   (M1_ARValid),
-        .M_RReady_h1   (M1_ARReady),
-        .Rvalid_both  (Rvalid_both)
+        // .M_RValid_h1   (M1_ARValid),
+        // .M_RReady_h1   (M1_ARReady),
+        .Rvalid_both  (Rvalid_both),
+        .DM_Write_addr(w_DM_Write_addr),
+        .CPU_DM_Write (w_DM_write_sel)
     );
 
-    Master_wrapper #(
+    Master_wrapper_PH_DM #(
       .C_ID   (4'b0010),
       .C_LEN  (`AXI_LEN_BITS'd0)
       ) Master_wrapper_DM_inst(
         .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_DM_WEB), 
-        .Memory_DM_read_sel    (w_DM_read_sel & ~DM_stall),
-        .Memory_DM_write_sel   (w_DM_write_sel & ~DM_stall),          
+        .Memory_DM_read_sel    (w_DM_read_sel),// & ~DM_stall),
+        .Memory_DM_write_sel   (w_DM_write_sel), //& ~DM_stall),          
         .Memory_BWEB  (w_DM_BWEB ),
         .Memory_Addr  (w_DM_addr ),
         .Memory_Din   (w_DM_Din  ),
@@ -250,13 +265,13 @@
         .M_RResp      (M1_RResp  ), 
         .M_RLast      (M1_RLast  ), 
         .M_RValid     (M1_RValid ),
-        .M_RReady     (M1_RReady )
+        .M_RReady     (M1_RReady ),
 
-        //helper
-        // .M_RLast_h1   (M0_RLast),
-        // .M_RValid_h1   (M0_ARValid),
-        // .M_RReady_h1   (M0_ARReady),
-        // .Rvalid_both  (Rvalid_both)
+      //helper
+        .M_RLast_h1   (M0_RLast),
+        .M_RValid_h1   (M0_ARValid),
+        .M_RReady_h1   (M0_ARReady),
+        .Rvalid_both  (Rvalid_both)
     );
 
     endmodule

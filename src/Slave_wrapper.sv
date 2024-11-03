@@ -196,10 +196,10 @@
         assign  S_RValid  = (S_cur == RDATA)    ? 1'b1  : 1'b0;   
     //----------------------- Memory -----------------------//   
         always_comb begin
-          // if (S_cur == SADDR && S_ARValid) begin
-          //      CEB   =   1'b0;            
-          // end 
-          if(S_cur == RDATA || S_cur == WDATA) begin
+          if ((S_cur == SADDR) && S_ARValid) begin
+               CEB   =   1'b0;            
+          end 
+          else if(S_cur == RDATA || S_cur == WDATA) begin
               CEB   =   1'b0;                 
           end
           else begin
