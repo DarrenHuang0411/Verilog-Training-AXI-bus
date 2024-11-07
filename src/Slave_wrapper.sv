@@ -2,9 +2,10 @@
     //Module Name :　Slave_wrapper
     //Type        :  
 //----------------------- Environment -----------------------//
-
+    `include "../include/AXI_define.svh"
+    `include "../include/CPU_define.svh"
 //------------------------- Module -------------------------//
-    module Slave_wrapper (
+    module Slave_wrapper(
         input   ACLK, ARESETn,
       //AXI Waddr
         input  [`AXI_IDS_BITS -1:0]         S_AWID,    
@@ -41,17 +42,18 @@
         output  logic                       S_RValid,  
         input                               S_RReady,
       //To Memory
-        output  logic                       CEB,  
+        //output  logic                       CEB,  
         output  logic                       WEB,
         output  logic [`DATA_WIDTH    -1:0] BWEB,
         output  logic [`MEM_ADDR_LEN  -1:0] A,
         output  logic [`DATA_WIDTH    -1:0] DI,
-        input         [`DATA_WIDTH    -1:0] DO
+        input         [`DATA_WIDTH    -1:0] DO,
+        output  logic               [1:0]   S_cur
     );
 
   //----------------------- Parameter -----------------------//
     //FSM
-      logic     [1:0]   S_cur, S_nxt;
+      logic     [1:0] S_nxt;
       parameter [1:0]   SADDR     = 2'd0,
                         RDATA     = 2'd1,
                         WDATA     = 2'd2,
@@ -195,17 +197,17 @@
         assign  S_RLast   = (cnt == reg_ARLen)  ? 1'b1  : 1'b0;    
         assign  S_RValid  = (S_cur == RDATA)    ? 1'b1  : 1'b0;   
     //----------------------- Memory -----------------------//   
-        always_comb begin
-          if ((S_cur == SADDR) && S_ARValid) begin
-               CEB   =   1'b0;            
-          end 
-          else if(S_cur == RDATA || S_cur == WDATA) begin
-              CEB   =   1'b0;                 
-          end
-          else begin
-              CEB   =   1'b1;  
-          end
-        end
+
+      //use reg_arvalid
+        // always_comb begin
+        //   CEB   =   1'b1;            
+        //   if(S_cur == RDATA || S_cur == WDATA) begin
+        //       CEB   =   1'b0;                 
+        //   end
+        //   else if (S_cur == SADDR) begin
+        //        CEB   =   1'b0;            
+        //   end 
+        // end
         //WEB
         always_comb begin
           case (S_cur)

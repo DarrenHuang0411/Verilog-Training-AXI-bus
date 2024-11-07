@@ -30,7 +30,7 @@ module CSR (
 //----------------------- count instr -----------------------// 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            count_cycle     <=  0;
+            count_cycle     <=  `CSR_REG_WIDTH'd0;
         end
         else begin
             count_cycle     <=  count_cycle + 1;
@@ -39,7 +39,7 @@ module CSR (
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            count_adjust     <=  0;
+            count_adjust     <=  2'd0;
         end
         else begin
           if (count_adjust == 2'd2 || HAZ_Stall) begin
@@ -53,7 +53,7 @@ module CSR (
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            count_instret   <=  0;
+            count_instret   <=  `CSR_REG_WIDTH'd0;
         end
         else begin
             if(count_adjust >= 2'd2 && !HAZ_Stall) begin

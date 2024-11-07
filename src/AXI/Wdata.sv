@@ -39,7 +39,7 @@
   //----------------------- Parameter -----------------------//
     logic       Master_sel;
     //Data register
-      logic   [`AXI_DATA_BITS -1:0]  Wdata_done;
+      logic                          Wdata_done;
       logic                          reg_S0_AWValid;
       logic                          reg_S1_AWValid;
       logic                          reg_DS_AWValid;      
@@ -64,13 +64,17 @@
         assign  M1_WReady  = Dec_Arb_Ready;
     //Slave 0 --> IM 
         assign  S0_WData  = M1_WData;
-        assign  S0_WStrb  = 4'hf;//
+        assign  S0_WStrb  = (reg_S0_AWValid) ? M1_WStrb : 4'hf;
         assign  S0_WLast  = M1_WLast;
 
     //Slave 1 --> DM 
         assign  S1_WData  = M1_WData;
-        assign  S1_WStrb  = M1_WStrb;//
+        assign  S1_WStrb  = (reg_S1_AWValid) ? M1_WStrb : 4'hf;
         assign  S1_WLast  = M1_WLast;
+
+    logic W_check;
+    assign  W_check = Wdata_done && M1_WLast;
+
 
     //Default Slave 
     //AW finish & maintain Slave_sel to check
@@ -81,8 +85,8 @@
           reg_DS_AWValid  <=  1'b0;          
         end
         else begin
-          reg_S0_AWValid  <=  (S0_AWValid) ? 1'b1 : ((Wdata_done && M1_WLast) ? 1'b0 : reg_S0_AWValid);
-          reg_S1_AWValid  <=  (S1_AWValid) ? 1'b1 : ((Wdata_done && M1_WLast) ? 1'b0 : reg_S1_AWValid);
+          reg_S0_AWValid  <=  (S0_AWValid) ? 1'b1 : ((W_check) ? 1'b0 : reg_S0_AWValid);
+          reg_S1_AWValid  <=  (S1_AWValid) ? 1'b1 : (W_check) ? 1'b0 : reg_S1_AWValid;
           reg_DS_AWValid  <=  (DS_AWValid) ? 1'b1 : ((Wdata_done && M1_WLast) ? 1'b0 : reg_DS_AWValid);         
         end
       end

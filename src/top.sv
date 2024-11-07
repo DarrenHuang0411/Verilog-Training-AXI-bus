@@ -6,6 +6,14 @@
     `include "../include/AXI_define.svh"
     `include "CPU_wrapper.sv"
     `include "AXI/AXI.sv"
+    //`include "./AXI/Waddr.sv"
+    //`include "./AXI/Wdata.sv"
+    //`include "./AXI/Wresp.sv"
+    //`include "./AXI/Raddr.sv"
+    //`include "./AXI/Rdata.sv"
+    //`include "./AXI/Arbiter.sv"
+    //`include "./AXI/Decoder.sv"
+    //`include "./AXI/DefaultSlave.sv"
     `include "SRAM_wrapper.sv"
 
 //------------------------- Module -------------------------//

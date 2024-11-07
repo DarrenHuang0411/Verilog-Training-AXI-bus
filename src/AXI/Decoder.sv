@@ -2,9 +2,10 @@
     //Module Name :　Decoder
     //Type        :  
 //----------------------- Environment -----------------------//
-
+`include "../../include/CPU_define.svh"
+`include "../../include/AXI_define.svh"
 //------------------------- Module -------------------------//
-    module Decoder (
+    module Decoder(
         input   clk, rst,
       //input Info
         input   [`AXI_ADDR_BITS -1:0]   I_Addr,

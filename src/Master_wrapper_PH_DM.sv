@@ -2,10 +2,12 @@
 
 
 //------------------------- Module -------------------------//
-    module Master_wrapper_PH_DM #(
-      parameter   C_ID  = 4'b0000,
-      parameter   C_LEN = `AXI_LEN_BITS'd15
-    ) (
+    module Master_wrapper_PH_DM
+    // #(
+    //parameter   C_ID  = 4'b0000,
+    //  parameter   C_LEN = `AXI_LEN_BITS'd15
+    //) 
+    (
         input       ACLK, ARESETn,
       //CPU Memory Port 
         input           Memory_WEB, 
@@ -31,7 +33,7 @@
         output  logic                           M_WValid,  
         input                                   M_WReady,
       //AXI Wresp
-        input         [`AXI_IDS_BITS -1:0]      M_BID,
+        input         [`AXI_ID_BITS -1:0]      M_BID,
         input         [1:0]                     M_BResp,
         input                                   M_BValid,
         output  logic                           M_BReady,                   
@@ -54,7 +56,8 @@
         input                                   M_RLast_h1,
         input                                   M_RValid_h1,        
         input                                   M_RReady_h1,
-        input                                   Rvalid_both                   
+        input                                   Rvalid_both,
+        input                                   R_W_both                 
     );
 
   //----------------------- Parameter -----------------------//
@@ -80,15 +83,27 @@
 
     //both valid
       logic   reg_Rvalid_both;
+      logic   reg_R_W_both;
 
       always_ff @(posedge ACLK) begin
           if(!ARESETn)
             reg_Rvalid_both <= 1'b0;
           else begin
-            if(reg_Rvalid_both == 1)
+            if(reg_Rvalid_both)
               reg_Rvalid_both <=  (M_RLast_h1) ? 1'b0 : 1'b1;
             else
               reg_Rvalid_both <= Rvalid_both;
+          end
+      end
+
+      always_ff @(posedge ACLK) begin
+          if(!ARESETn)
+            reg_R_W_both <= 1'b0;
+          else begin
+            if(reg_R_W_both)
+              reg_R_W_both <=  (M_RLast_h1) ? 1'b0 : 1'b1;
+            else
+              reg_R_W_both <= R_W_both;
           end
       end
   //----------------------- Main Code -----------------------//    
@@ -121,43 +136,43 @@
               S_nxt  = (R_last) ? INITIAL : RDATA;
           end
           WADDR:  S_nxt  = (Waddr_done) ? WDATA   : WADDR; 
-          WDATA:  S_nxt  = (W_last)     ? WRESP   : WDATA; 
-          WRESP:  S_nxt  = (Wresp_done) ? INITIAL : WRESP; 
+          WDATA: 
+              S_nxt  = (W_last)     ? WRESP   : WDATA;                
+
+          WRESP:  begin
+            if(reg_R_W_both)  
+              S_nxt  = (M_RLast_h1) ? INITIAL : WRESP; 
+            else 
+              S_nxt  = (Wresp_done) ? INITIAL : WRESP;
+          end 
           default:  S_nxt  = INITIAL;
         endcase
       end
     //--------------------- Start Burst ---------------------//
       always_comb begin
-        if (!ARESETn) begin
-          Start_burst_write   <=  1'b0;
-          Start_burst_read    <=  1'b0;
-        end
-        else begin
           case (S_cur)
             INITIAL:  begin
-              Start_burst_write   <=  (~Memory_WEB) & Memory_DM_write_sel;
-              Start_burst_read    <=   Memory_WEB & Memory_DM_read_sel;                
+              Start_burst_write   =  (~Memory_WEB) & Memory_DM_write_sel;
+              Start_burst_read    =   Memory_WEB & Memory_DM_read_sel;                
             end
             RADDR:  begin
-              Start_burst_write   <=  1'b0;
-              Start_burst_read    <=  1'b1;                
+              Start_burst_write   =  1'b0;
+              Start_burst_read    =  1'b1;                
             end
             WADDR:  begin
-              Start_burst_write   <=  1'b1;
-              Start_burst_read    <=  1'b0;                
+              Start_burst_write   =  1'b1;
+              Start_burst_read    =  1'b0;                
             end
             default: begin
-              Start_burst_write   <=  1'b0;
-              Start_burst_read    <=  1'b0;                 
+              Start_burst_write   =  1'b0;
+              Start_burst_read    =  1'b0;                 
             end
           endcase
-      
-        end
       end
     //--------------------- Last Signal ---------------------//  
       assign  W_last  = M_WLast & Wdata_done;
       always_comb begin
-        if(reg_Rvalid_both)
+        if(reg_Rvalid_both || reg_R_W_both)
           R_last  = M_RLast_h1 & Rdata_done;
         else
           R_last  = M_RLast & Rdata_done;
@@ -207,8 +222,10 @@
       end
     //---------------------- W-channel ----------------------//
       //Addr
-      assign  M_AWID      = C_ID;
-      assign  M_AWLen     = C_LEN;
+      //assign  M_AWID      = C_ID;
+      assign  M_AWID      = 4'b0010;
+      //assign  M_AWLen     = C_LEN;
+      assign  M_AWLen     = 0;
       assign  M_AWSize    = `AXI_SIZE_BITS'd0;
       assign  M_AWBurst   = `AXI_BURST_INC; 
       assign  M_AWAddr    = Memory_Addr;
@@ -233,8 +250,10 @@
       assign  M_BReady  =   (S_cur == WRESP || S_cur == WDATA)? 1'b1 : 1'b0;
     //---------------------- R-channel ----------------------//
       //Addr
-      assign  M_ARID      = C_ID;
-      assign  M_ARLen     = C_LEN;
+      //assign  M_ARID      = C_ID;
+      assign  M_ARID      = 4'b0010;
+      //assign  M_ARLen     = C_LEN;
+      assign  M_ARLen     = 0;
       assign  M_ARSize    = `AXI_SIZE_BITS'd0;
       assign  M_ARBurst   = `AXI_BURST_INC; 
       assign  M_ARAddr    = Memory_Addr; 
@@ -260,15 +279,20 @@
         end        
       end
       assign  M_RReady    = (S_cur == RDATA)  ? 1'b1 : 1'b0; 
-      //assign  reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
-      always_comb begin
-        if(reg_Rvalid_both)
-          reg_RData   =  (M_RLast_h1)  ? M_RData : reg_RData;
-        else
-          reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
-      end
+      // //assign  reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
+      // always_comb begin
+      //   if(reg_Rvalid_both)
+      //     reg_RData   =  (M_RLast_h1)  ? M_RData : reg_RData;
+      //   else
+      //     reg_RData   =  (Rdata_done)  ? M_RData : reg_RData;
+      // end
     //------------------------- CPU -------------------------//
-      assign  Memory_Dout   = (reg_Rvalid_both) ? reg_RData_test : reg_RData;
+      //assign  Memory_Dout   = (reg_Rvalid_both) ? reg_RData_test : reg_RData;
+      assign  Memory_Dout   =    reg_RData_test;
+        
+
+
+
       // always_ff @(posedge ACLK) begin
       //   if(!ARESETn)  begin
       //     Trans_Stall <=  1'b0;

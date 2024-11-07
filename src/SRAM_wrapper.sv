@@ -3,10 +3,11 @@
     //Type        : 
 //----------------------- Environment -----------------------//
     `include "Slave_wrapper.sv"
-
+    `include "../include/AXI_define.svh"
+    `include "../include/CPU_define.svh"
 //------------------------- Module -------------------------//
 
-module SRAM_wrapper (
+module SRAM_wrapper(
     input   ACLK, ARESETn,
   //AXI Waddr
     input  [`AXI_IDS_BITS -1:0]         S_AWID,    
@@ -45,13 +46,26 @@ module SRAM_wrapper (
 
 );
 
+      // logic     adj_ARESETn;
+      // always_ff @(posedge ACLK) begin
+      //   if(!ARESETn)
+      //     adj_ARESETn <=  1'b0;
+      //   else
+      //     adj_ARESETn <=  1'b1;
+      // end
   //----------------------- Parameter -----------------------//
-    logic                         w_CEB;
-    logic                         w_WEB;
-    logic   [`AXI_DATA_BITS -1:0] w_BWEB;
-    logic   [`MEM_ADDR_LEN  -1:0]     w_A;   
-    logic   [`AXI_DATA_BITS -1:0] w_DI;   
-    logic   [`AXI_DATA_BITS -1:0] w_DO;  
+    logic     [1:0]             S_cur;
+    parameter [1:0]   SADDR     = 2'd0,
+                      RDATA     = 2'd1,
+                      WDATA     = 2'd2,
+                      WRESP     = 2'd3;
+
+    logic                         CEB;
+    logic                         WEB;
+    logic   [`AXI_DATA_BITS -1:0] BWEB;
+    logic   [`MEM_ADDR_LEN  -1:0] A;   
+    logic   [`AXI_DATA_BITS -1:0] DI;   
+    logic   [`AXI_DATA_BITS -1:0] DO;  
 
   //----------------------- Main Code -----------------------//  
     //Slave_wrapper
@@ -92,13 +106,25 @@ module SRAM_wrapper (
       .S_RValid   (S_RValid ),
       .S_RReady   (S_RReady ),
 
-      .CEB        (w_CEB    ),
-      .WEB        (w_WEB    ),
-      .BWEB       (w_BWEB   ),
-      .A          (w_A      ),
-      .DI         (w_DI     ),
-      .DO         (w_DO     )
+      //.CEB        (CEB    ),
+      .WEB        (WEB    ),
+      .BWEB       (BWEB   ),
+      .A          (A      ),
+      .DI         (DI     ),
+      .DO         (DO     ),
+      .S_cur      (S_cur)
     );
+    
+    always_comb begin
+      CEB   =   1'b1;            
+      if(S_cur == RDATA || S_cur == WDATA) begin
+          CEB   =   1'b0;                 
+      end
+      else if (S_cur == SADDR) begin
+          CEB   =   1'b0;            
+      end 
+    end
+
     //SRAM
     TS1N16ADFPCLLLVTA512X45M4SWSHOD i_SRAM (
       .SLP      (1'b0),
@@ -106,14 +132,14 @@ module SRAM_wrapper (
       .SD       (1'b0),
       .PUDELAY  (),
       .CLK      (ACLK),
-      .CEB      (w_CEB),
-      .WEB      (w_WEB),
-      .A        (w_A),
-      .D        (w_DI),
-      .BWEB     (w_BWEB),
+      .CEB      (CEB),
+      .WEB      (WEB),
+      .A        (A),
+      .D        (DI),
+      .BWEB     (BWEB),
       .RTSEL    (2'b01),
       .WTSEL    (2'b01),
-      .Q        (w_DO)
+      .Q        (DO)
 );
 
 

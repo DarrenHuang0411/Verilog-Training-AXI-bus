@@ -2,10 +2,12 @@
 
 
 //------------------------- Module -------------------------//
-    module Master_wrapper_PL_IM #(
-      parameter   C_ID  = 4'b0000,
-      parameter   C_LEN = `AXI_LEN_BITS'd15
-    ) (
+    module Master_wrapper_PL_IM 
+    //#(
+    //  parameter   C_ID  = 4'b0000,
+    //  parameter   C_LEN = `AXI_LEN_BITS'd15
+    //)
+    (
         input       ACLK, ARESETn,
       //CPU Memory Port 
         input           Memory_WEB, 
@@ -31,7 +33,7 @@
         output  logic                           M_WValid,  
         input                                   M_WReady,
       //AXI Wresp
-        input         [`AXI_IDS_BITS -1:0]      M_BID,
+        input         [`AXI_ID_BITS -1:0]      M_BID,
         input         [1:0]                     M_BResp,
         input                                   M_BValid,
         output  logic                           M_BReady,                   
@@ -52,11 +54,15 @@
         output  logic                           M_RReady,
       //helping signal
         input                                   M_RLast_h1,
+        input                                   M_WLast_h1,       
         input                                   M_RValid_h1,        
         input                                   M_RReady_h1,
         input                                   Rvalid_both,
         input                                   DM_Write_addr,
-        input                                   CPU_DM_Write                
+        input                                   CPU_DM_Write,
+
+        input           [`AXI_ADDR_BITS -1:0]   M_AWAddr_h1,
+        input                                   R_W_both             
     );
 
   //----------------------- Parameter -----------------------//
@@ -87,13 +93,20 @@
           if(!ARESETn)
             reg_Rvalid_both <= 1'b0;
           else begin
-            if(reg_Rvalid_both == 1)
+            if(reg_Rvalid_both)
               reg_Rvalid_both <=  (M_RLast) ? 1'b0 : 1'b1;
             else
               reg_Rvalid_both <= Rvalid_both;
           end
       end
-  //----------------------- Main Code -----------------------//
+
+    //----------------------- Main Code -----------------------//
+    logic   R_W_same_dis;
+    assign  R_W_same_dis  = CPU_DM_Write && (M_AWAddr_h1[31:16] == Memory_Addr[31:16]);
+
+    logic   Con_R_W_same_dis;
+    assign  Con_R_W_same_dis = Start_burst_read && R_W_same_dis && M_WLast_h1;
+
     logic   align_sw_lw;   
     assign  align_sw_lw = CPU_DM_Write && (!DM_Write_addr);   
     
@@ -108,7 +121,10 @@
       always_comb begin
         case (S_cur)
           INITIAL:  begin
-            if(Start_burst_read && (!align_sw_lw)) begin  
+            if(Con_R_W_same_dis) begin  
+              S_nxt   = RADDR;
+            end            
+            else if(Start_burst_read && (!align_sw_lw)&& (!R_W_same_dis)) begin  
               S_nxt   = RADDR;
             end
             else if  (Start_burst_write) begin
@@ -135,31 +151,24 @@
       end
     //--------------------- Start Burst ---------------------//
       always_comb begin
-        if (!ARESETn) begin
-          Start_burst_write   <=  1'b0;
-          Start_burst_read    <=  1'b0;
-        end
-        else begin
           case (S_cur)
             INITIAL:  begin
-              Start_burst_write   <=  (~Memory_WEB) & Memory_DM_write_sel;
-              Start_burst_read    <=   Memory_WEB & Memory_DM_read_sel;                
+              Start_burst_write   =  (~Memory_WEB) & Memory_DM_write_sel;
+              Start_burst_read    =   Memory_WEB & Memory_DM_read_sel;                
             end
             RADDR:  begin
-              Start_burst_write   <=  1'b0;
-              Start_burst_read    <=  1'b1;                
+              Start_burst_write   =  1'b0;
+              Start_burst_read    =  1'b1;                
             end
             WADDR:  begin
-              Start_burst_write   <=  1'b1;
-              Start_burst_read    <=  1'b0;                
+              Start_burst_write   =  1'b1;
+              Start_burst_read    =  1'b0;                
             end
             default: begin
-              Start_burst_write   <=  1'b0;
-              Start_burst_read    <=  1'b0;                 
+              Start_burst_write   =  1'b0;
+              Start_burst_read    =  1'b0;                 
             end
           endcase
-      
-        end
       end
     //--------------------- Last Signal ---------------------//  
       assign  W_last  = M_WLast & Wdata_done;
@@ -214,8 +223,10 @@
       end
     //---------------------- W-channel ----------------------//
       //Addr
-      assign  M_AWID      = C_ID;
-      assign  M_AWLen     = C_LEN;
+      //assign  M_AWID      = C_ID;
+      assign  M_AWID      = 4'b0001;
+      //assign  M_AWLen     = C_LEN;
+      assign  M_AWLen     = 0;
       assign  M_AWSize    = `AXI_SIZE_BITS'd0;
       assign  M_AWBurst   = `AXI_BURST_INC; 
       assign  M_AWAddr    = Memory_Addr;
@@ -240,8 +251,10 @@
       assign  M_BReady  =   (S_cur == WRESP || S_cur == WDATA)? 1'b1 : 1'b0;
     //---------------------- R-channel ----------------------//
       //Addr
-      assign  M_ARID      = C_ID;
-      assign  M_ARLen     = C_LEN;
+      //assign  M_ARID      = C_ID;
+      assign  M_ARID      = 4'b0001;
+      //assign  M_ARLen     = C_LEN;
+      assign  M_ARLen     = 0;
       assign  M_ARSize    = `AXI_SIZE_BITS'd0;
       assign  M_ARBurst   = `AXI_BURST_INC; 
       assign  M_ARAddr    = Memory_Addr; 

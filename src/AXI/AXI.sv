@@ -15,13 +15,19 @@
 //	Description:	Top module of AXI	 							//
 // 	Version:		1.0	    								   		//
 //////////////////////////////////////////////////////////////////////
-`include "./AXI/Waddr.sv"
-`include "./AXI/Wdata.sv"
-`include "./AXI/Wresp.sv"
-`include "./AXI/Raddr.sv"
-`include "./AXI/Rdata.sv"
-`include "./AXI/DefaultSlave.sv"
+//for vip & others
+ 
+ `include "../../src/AXI/Waddr.sv"
+ `include "../../src/AXI/Wdata.sv"
+ `include "../../src/AXI/Wresp.sv"
+ `include "../../src/AXI/Raddr.sv"
+ `include "../../src/AXI/Rdata.sv"
+ `include "../../src/AXI/Arbiter.sv"
+ `include "../../src/AXI/Decoder.sv"
+ `include "../../src/AXI/DefaultSlave.sv"
 
+`include "../../include/CPU_define.svh"
+`include "../../include/AXI_define.svh"
 module AXI(
 
 	input ACLK,
@@ -165,6 +171,14 @@ module AXI(
 	output logic 						RREADY_S1	
 );
 
+      logic     adj_ARESETn;
+      always_ff @(posedge ACLK) begin
+        if(!ARESETn)
+          adj_ARESETn <=  1'b0;
+        else
+          adj_ARESETn <=  1'b1;
+      end
+
   //---------- you should put your design here ----------//
   //-------------------- Parameter --------------------//	
   	//Default slave
@@ -204,7 +218,7 @@ module AXI(
 
   //-------------------- Main code --------------------//	
 	Raddr	Raddr_inst(
-		.clk(ACLK), .rst(ARESETn),
+		.clk(ACLK), .rst(adj_ARESETn),
 	  //M0
 		.M0_ARID	(ARID_M0),   
 		.M0_ARAddr	(ARADDR_M0), 
@@ -248,7 +262,7 @@ module AXI(
 	);
 
 	Rdata	Rdata_inst(
-	    .clk(ACLK), .rst(ARESETn),
+	    .clk(ACLK), .rst(adj_ARESETn),
 	  //M0
 		.M0_RID		(RID_M0),  
 		.M0_RData	(RDATA_M0),
@@ -287,7 +301,7 @@ module AXI(
 	);
 
 	Waddr	Waddr_inst(
-	    .clk(ACLK), .rst(ARESETn),  
+	    .clk(ACLK), .rst(adj_ARESETn),  
 	  //M0
 	  //M1
 		.M1_AWID	(AWID_M1),   
@@ -324,7 +338,7 @@ module AXI(
 	);
 
 	Wdata	Wdata_inst(
-        .clk(ACLK), .rst(ARESETn),		
+        .clk(ACLK), .rst(adj_ARESETn),		
 	  //M0
 	  //M1
 		.M1_WData	(WDATA_M1), 
@@ -337,13 +351,13 @@ module AXI(
 		.S0_WStrb	(WSTRB_S0), 
 		.S0_WLast	(WLAST_S0), 
 		.S0_WValid	(WVALID_S0),
-		.S0_WReady	(WVALID_S0),
+		.S0_WReady	(WREADY_S0),
 	  //S1
 		.S1_WData	(WDATA_S1),  
 		.S1_WStrb	(WSTRB_S1),  
 		.S1_WLast	(WLAST_S1),  
 		.S1_WValid	(WVALID_S1),
-		.S1_WReady	(WVALID_S1),
+		.S1_WReady	(WREADY_S1),
 	  //DS
 		.DS_WData	(w_DS_WData ),  
 		.DS_WStrb	(w_DS_WStrb ),  
@@ -357,7 +371,7 @@ module AXI(
 	);
 
 	Wresp	Wresp_inst(
-        .clk(ACLK), .rst(ARESETn),		
+        .clk(ACLK), .rst(adj_ARESETn),		
 	  //M0
 	  //M1
 		.M1_BID		(BID_M1),
@@ -382,7 +396,7 @@ module AXI(
 	);
 
 	DefaultSlave DefaultSlave_inst(
-        .ACLK(ACLK), .ARESETn(ARESETn),		
+        .ACLK(ACLK), .ARESETn(adj_ARESETn),		
 		.DS_AWID	(w_DS_AWID),
 		.DS_AWAddr 	(w_DS_AWAddr ),
 		.DS_AWLen  	(w_DS_AWLen  ),

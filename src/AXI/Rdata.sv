@@ -60,9 +60,10 @@
     logic     Arib_Dec_Ready;
   //----------------------- Main Code -----------------------//
     always_comb begin
-        unique if (DS_RValid) 
-            Slave_sel   =   3'b100;
-        else if(S1_RValid)
+        //if (DS_RValid) 
+        //    Slave_sel   =   3'b100;
+        //else 
+        if(S1_RValid)
             Slave_sel   =   3'b010;
         else if(S0_RValid)
             Slave_sel   =   3'b001;
@@ -94,17 +95,17 @@
                 S1_RReady   =   Arib_Dec_Ready;
                 DS_RReady   =   1'b0;                                                
             end
-            DS: begin
-                Master_sel  =   DS_RID[7:4];
-                O_ID        =   DS_RID[3:0];  
-                O_Data      =   DS_RData;
-                O_Resp      =   DS_RResp;
-                O_Last      =   DS_RLast;   
-                Dec_Arib_Valid  =    DS_RValid;                   
-                S0_RReady   =   1'b0;
-                S1_RReady   =   1'b0;
-                DS_RReady   =   Arib_Dec_Ready;                                                   
-            end 
+            //DS: begin
+            //    Master_sel  =   DS_RID[7:4];
+            //    O_ID        =   DS_RID[3:0];  
+            //    O_Data      =   DS_RData;
+            //    O_Resp      =   DS_RResp;
+            //    O_Last      =   DS_RLast;   
+            //    Dec_Arib_Valid  =    DS_RValid;                   
+            //    S0_RReady   =   1'b0;
+            //    S1_RReady   =   1'b0;
+            //    DS_RReady   =   Arib_Dec_Ready;                                                   
+            //end 
             default: begin
                 Master_sel  =   `AXI_ID_BITS'd0;
                 O_ID        =   `AXI_ID_BITS'd0;  

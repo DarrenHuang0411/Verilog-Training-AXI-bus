@@ -112,7 +112,7 @@
 
     //Adjust rst for CPU(Delay wrapper & AXI to check addr 0 can be stall)
       logic     adj_ARESETn_CPU;
-      always_ff @(negedge ACLK) begin
+      always_ff @(posedge ACLK) begin
         if(ARESETn)
           adj_ARESETn_CPU <=  1'b1;
         else
@@ -145,25 +145,23 @@
         .DM_Trans_Stall (w_DM_Trans_Stall)
     );
 
-
-    logic DM_stall;
-    always_ff @(posedge ACLK)begin
-      if(!ARESETn)begin
-        DM_stall <= 0;
-      end
-      else begin
-        DM_stall <= (~w_IM_Trans_Stall)? 1'b0 : ((w_IM_Trans_Stall & ~w_DM_Trans_Stall)? 1'b1 : DM_stall);
-      end
-    end
-
     logic RValid_both;
     assign  Rvalid_both = M0_ARValid & M1_ARValid;
+
+    logic R_W_both;
+    assign  R_W_both    = (M0_ARValid && M1_AWValid) ? ((M0_ARAddr[31:16] == M1_AWAddr[31:16]) ? 1'b1: 1'b0) : 1'b0;
+
     logic w_DM_Write_addr;
     assign  w_DM_Write_addr = M1_AWValid;
-    Master_wrapper_PL_IM #(
-      .C_ID   (4'b0001),
-      .C_LEN  (`AXI_LEN_BITS'd0)
-      ) Master_wrapper_IM_inst (
+
+
+//#(
+//      .C_ID   (4'b0001),
+//      .C_LEN  (`AXI_LEN_BITS'd0)
+//      ) 
+
+
+    Master_wrapper_PL_IM Master_wrapper_IM_inst(
         .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_IM_WEB), 
@@ -210,17 +208,24 @@
         .M_RReady     (M0_RReady ),
       //helper
         .M_RLast_h1   (M1_RLast),
+        .M_WLast_h1   (M1_WLast),        
         // .M_RValid_h1   (M1_ARValid),
         // .M_RReady_h1   (M1_ARReady),
         .Rvalid_both  (Rvalid_both),
         .DM_Write_addr(w_DM_Write_addr),
-        .CPU_DM_Write (w_DM_write_sel)
+        .CPU_DM_Write (w_DM_write_sel),
+
+        .M_AWAddr_h1  (M1_AWAddr),
+        .R_W_both     (R_W_both)
     );
 
-    Master_wrapper_PH_DM #(
-      .C_ID   (4'b0010),
-      .C_LEN  (`AXI_LEN_BITS'd0)
-      ) Master_wrapper_DM_inst(
+//#(
+//      .C_ID   (4'b0010),
+//      .C_LEN  (`AXI_LEN_BITS'd0)
+//      ) 
+
+
+    Master_wrapper_PH_DM Master_wrapper_DM_inst(
         .ACLK(ACLK), .ARESETn(adj_ARESETn),
       //CPU-Master
         .Memory_WEB   (w_DM_WEB), 
@@ -269,9 +274,11 @@
 
       //helper
         .M_RLast_h1   (M0_RLast),
-        .M_RValid_h1   (M0_ARValid),
-        .M_RReady_h1   (M0_ARReady),
-        .Rvalid_both  (Rvalid_both)
+        .M_RValid_h1  (M0_ARValid),
+        .M_RReady_h1  (M0_ARReady),
+        .Rvalid_both  (Rvalid_both),
+
+        .R_W_both     (R_W_both)
     );
 
     endmodule

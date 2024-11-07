@@ -1,11 +1,12 @@
 //----------------------- Environment -----------------------//
+    `include "../include/AXI_define.svh"
+    `include "../include/CPU_define.svh"
     `include "IF_Stage.sv"
     `include "ID_Stage.sv"
     `include "EXE_Stage.sv"
     `include "MEM_Stage.sv"
     `include "WB_Stage.sv"
 
-    `include "SRAM_wrapper.sv"
     `include "Branch_Ctrl.sv"
     `include "Hazard_Ctrl.sv"
     `include "ForwardingUnit.sv"
@@ -450,18 +451,18 @@ module CPU (
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            ID_EXE_pc_in            <=  0;
-            ID_EXE_rs1              <=  0;   
-            ID_EXE_rs2              <=  0;
-            ID_EXE_rs1_FP           <=  0;
-            ID_EXE_rs2_FP           <=  0;
+            ID_EXE_pc_in            <=  `DATA_WIDTH'd0;
+            ID_EXE_rs1              <=  `DATA_WIDTH'd0;   
+            ID_EXE_rs2              <=  `DATA_WIDTH'd0;
+            ID_EXE_rs1_FP           <=  `DATA_WIDTH'd0;
+            ID_EXE_rs2_FP           <=  `DATA_WIDTH'd0;
 
-            ID_EXE_function3        <=  0;
-            ID_EXE_function7        <=  0;
-            ID_EXE_rs1_addr         <=  0;
-            ID_EXE_rs2_addr         <=  0;
-            ID_EXE_rd_addr          <=  0;
-            ID_EXE_imm              <=  0;
+            ID_EXE_function3        <=  `FUNCTION_3'd0;
+            ID_EXE_function7        <=  `FUNCTION_7'd0;
+            ID_EXE_rs1_addr         <=  5'd0;
+            ID_EXE_rs2_addr         <=  5'd0;
+            ID_EXE_rd_addr          <=  5'd0;
+            ID_EXE_imm              <=  `DATA_WIDTH'd0;
             ID_EXE_ALU_Ctrl_op      <=  0;
             ID_EXE_pc_mux           <=  0;
             ID_EXE_ALU_rs2_sel      <=  0;

@@ -2,9 +2,10 @@
     //Module Name :　CPU_wrapper
     //Type        :  
 //----------------------- Environment -----------------------//
-
+`include "../../include/CPU_define.svh"
+`include "../../include/AXI_define.svh"
 //------------------------- Module -------------------------//
-    module Arbiter (
+    module Arbiter(
         input   clk, rst,
       //input Info 0
         input   [`AXI_ID_BITS -1:0]     I0_ID,
@@ -125,6 +126,19 @@
       end                    
     end 
     
+    logic [31:0] reg_addr;
+    always_ff @(posedge clk) begin
+      if(!rst)
+        reg_addr  <= 32'd0;
+      else
+        case (Master_sel)
+          I0: reg_addr  <=  I0_Addr;
+          I1: reg_addr  <=  I1_Addr;
+        endcase
+
+    end
+
+
     always_comb begin
         case (Master_sel)
             I0: begin
@@ -149,7 +163,7 @@
             end
             default: begin //idle case
                 O_IDS       =   `AXI_IDS_BITS'd0;
-                O_Addr      =   `AXI_ADDR_BITS'd0;
+                O_Addr      =   reg_addr;
                 O_Len       =   `AXI_LEN_BITS'd0;
                 O_Size      =   `AXI_SIZE_BITS'd0;
                 O_Burst     =   2'b0;

@@ -68,13 +68,13 @@ module MEM_Stage (
     //---------------------- En -----------------------//
     always_comb begin
         //active low
-        w_eb    =   32'hffff_ffff;//4'b1111;
+        //w_eb    =   32'hffff_ffff;//4'b1111;
         if(MEM_DMwrite_sel) begin
             case (EXE_funct3)
                 3'b000:   w_eb[{MEM_ALU[1:0],3'b0} +: 8]  =    8'b0;    //SB 
                 3'b001:   w_eb[{MEM_ALU[1]  ,4'b0} +:16]  =   16'b0;    //SH
-                3'b010:   w_eb                            =   32'b0; //SW
-                default:  w_eb                            =   32'b0;
+                3'b010:   w_eb                            =   32'h0; //SW
+                default:  w_eb                            =   32'hffff_ffff;
             endcase
         end
     end

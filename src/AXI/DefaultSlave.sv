@@ -66,7 +66,7 @@
         always_comb begin
           case (S_cur)
             SADDR:  begin
-              unique if(Raddr_done)
+              if(Raddr_done)
                 S_nxt = RDATA;
               else if(Waddr_done)
                 S_nxt = WDATA;
